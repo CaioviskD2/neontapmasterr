@@ -1,12 +1,41 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState } from 'react';
+import HomeScreen from '@/components/game/HomeScreen';
+import GameScreen from '@/components/game/GameScreen';
+import GameOverScreen from '@/components/game/GameOverScreen';
+import LeaderboardScreen from '@/components/game/LeaderboardScreen';
+
+type Screen = 'home' | 'game' | 'gameover' | 'leaderboard';
 
 const Index = () => {
+  const [screen, setScreen] = useState<Screen>('home');
+  const [lastScore, setLastScore] = useState(0);
+
+  const handleGameOver = (score: number) => {
+    setLastScore(score);
+    setScreen('gameover');
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="w-full h-[100dvh] overflow-hidden bg-background">
+      {screen === 'home' && (
+        <HomeScreen
+          onPlay={() => setScreen('game')}
+          onLeaderboard={() => setScreen('leaderboard')}
+        />
+      )}
+      {screen === 'game' && (
+        <GameScreen onGameOver={handleGameOver} />
+      )}
+      {screen === 'gameover' && (
+        <GameOverScreen
+          score={lastScore}
+          onPlayAgain={() => setScreen('game')}
+          onHome={() => setScreen('home')}
+        />
+      )}
+      {screen === 'leaderboard' && (
+        <LeaderboardScreen onBack={() => setScreen('home')} />
+      )}
     </div>
   );
 };
