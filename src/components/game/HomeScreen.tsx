@@ -1,0 +1,77 @@
+import React from 'react';
+import { getHighScore } from '@/lib/storage';
+import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
+import { Volume2, VolumeX } from 'lucide-react';
+
+interface Props {
+  onPlay: () => void;
+  onLeaderboard: () => void;
+}
+
+const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
+  const [soundOn, setSoundOn] = React.useState(getSoundEnabled());
+  const highScore = getHighScore();
+
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    setSoundEnabled(next);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
+      {/* Sound toggle */}
+      <button
+        onClick={toggleSound}
+        className="absolute top-4 right-4 p-3 rounded-full border border-border hover:border-neon-blue transition-colors"
+        aria-label="Toggle sound"
+      >
+        {soundOn ? (
+          <Volume2 className="w-5 h-5 text-neon-blue" />
+        ) : (
+          <VolumeX className="w-5 h-5 text-muted-foreground" />
+        )}
+      </button>
+
+      {/* Title */}
+      <h1 className="font-arcade text-2xl sm:text-3xl md:text-4xl neon-text-green text-center leading-relaxed mb-2">
+        ONE WRONG
+      </h1>
+      <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl neon-text-red text-center leading-relaxed mb-10">
+        TAP
+      </h1>
+
+      {/* High Score */}
+      {highScore > 0 && (
+        <div className="mb-8 text-center animate-slide-down">
+          <p className="font-arcade text-[10px] text-muted-foreground mb-1">HIGH SCORE</p>
+          <p className="font-arcade text-lg neon-text-blue">{highScore}</p>
+        </div>
+      )}
+
+      {/* Buttons */}
+      <button
+        onClick={onPlay}
+        className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-4"
+      >
+        PLAY
+      </button>
+
+      <button
+        onClick={onLeaderboard}
+        className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all"
+      >
+        LEADERBOARD
+      </button>
+
+      {/* Decorative circles */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 opacity-30">
+        <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse-neon" />
+        <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse-neon" style={{ animationDelay: '0.3s' }} />
+        <div className="w-3 h-3 rounded-full bg-neon-red animate-pulse-neon" style={{ animationDelay: '0.6s' }} />
+      </div>
+    </div>
+  );
+};
+
+export default HomeScreen;
