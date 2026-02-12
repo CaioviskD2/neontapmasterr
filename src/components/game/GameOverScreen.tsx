@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getHighScore, setHighScore, addToLocalLeaderboard } from '@/lib/storage';
+import { getHighScore, setHighScore } from '@/lib/storage';
+import { submitScore } from '@/lib/leaderboard';
 import { playHighScoreSound } from '@/lib/sounds';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
+import { Loader2 } from 'lucide-react';
 
 interface Props {
   score: number;
@@ -14,6 +16,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
   const [highScore, setHigh] = useState(0);
   const [nickname, setNickname] = useState('');
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showNickname, setShowNickname] = useState(false);
 
   useEffect(() => {
@@ -32,47 +35,47 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
       setShowNickname(true);
     }
 
-    // Show interstitial ad placeholder
     showInterstitialAd();
   }, [score]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmed = nickname.trim();
     if (trimmed.length < 3 || trimmed.length > 12) return;
-    addToLocalLeaderboard({ nickname: trimmed, score, timestamp: Date.now() });
-    setSaved(true);
+    
+    setSaving(true);
+    const success = await submitScore(trimmed, score);
+    setSaving(false);
+    
+    if (success) {
+      setSaved(true);
+    }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
-      {/* Game Over Title */}
       <h1 className="font-arcade text-2xl sm:text-3xl neon-text-red animate-glitch mb-6">
         GAME OVER
       </h1>
 
-      {/* Score */}
       <div className="text-center mb-4">
         <p className="font-arcade text-[10px] text-muted-foreground mb-1">YOUR SCORE</p>
         <p className="font-arcade text-3xl neon-text-blue">{score}</p>
       </div>
 
-      {/* High Score */}
       <div className="text-center mb-6">
         <p className="font-arcade text-[10px] text-muted-foreground mb-1">HIGH SCORE</p>
         <p className="font-arcade text-lg neon-text-gold">{highScore}</p>
       </div>
 
-      {/* New High Score */}
       {isNewHighScore && (
         <div className="mb-6 animate-pulse-neon">
           <p className="font-arcade text-xs neon-text-gold">★ NEW HIGH SCORE ★</p>
         </div>
       )}
 
-      {/* Nickname input */}
       {showNickname && !saved && (
         <div className="w-full max-w-[280px] mb-6 animate-slide-down">
-          <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">ENTER NICKNAME (3-12 chars)</p>
+          <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">ENTER NICKNAME FOR GLOBAL RANKING</p>
           <input
             type="text"
             value={nickname}
@@ -83,29 +86,25 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
           />
           <button
             onClick={handleSave}
-            disabled={nickname.trim().length < 3}
-            className="w-full mt-2 py-2 rounded-lg font-arcade text-[10px] border border-neon-blue text-neon-blue hover:bg-neon-blue/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            disabled={nickname.trim().length < 3 || saving}
+            className="w-full mt-2 py-2 rounded-lg font-arcade text-[10px] border border-neon-blue text-neon-blue hover:bg-neon-blue/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
-            SAVE SCORE
+            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+            {saving ? 'SAVING...' : 'SAVE TO GLOBAL RANKING'}
           </button>
         </div>
       )}
 
       {saved && (
-        <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">SCORE SAVED!</p>
+        <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">✓ SCORE SAVED TO GLOBAL RANKING!</p>
       )}
 
-      {/* Buttons */}
       <button
         onClick={onPlayAgain}
         className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-3"
       >
         PLAY AGAIN
       </button>
-
-      {/* Continue button - placeholder for rewarded ad */}
-      {/* TODO: Integrate rewarded ad here */}
-      {/* <button className="..." onClick={() => showRewardedAd()}>CONTINUE (AD)</button> */}
 
       <button
         onClick={onHome}
