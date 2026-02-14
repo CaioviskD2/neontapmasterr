@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { playTapSound, playGameOverSound } from '@/lib/sounds';
+import { playGameMusic } from '@/lib/music';
 
 interface Circle {
   id: number;
@@ -87,6 +88,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
 
   // Init
   useEffect(() => {
+    playGameMusic();
     const timeout = setTimeout(() => spawnCircles(0), 50);
     return () => clearTimeout(timeout);
   }, [spawnCircles]);

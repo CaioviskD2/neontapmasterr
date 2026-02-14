@@ -1,6 +1,7 @@
 import React from 'react';
 import { getHighScore } from '@/lib/storage';
 import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
+import { setMusicEnabled, playHomeMusic } from '@/lib/music';
 import { Volume2, VolumeX } from 'lucide-react';
 
 interface Props {
@@ -16,6 +17,13 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
     const next = !soundOn;
     setSoundOn(next);
     setSoundEnabled(next);
+    setMusicEnabled(next);
+    if (next) playHomeMusic();
+  };
+
+  const handlePlay = () => {
+    playHomeMusic(); // ensure user interaction registered
+    onPlay();
   };
 
   return (
@@ -51,7 +59,7 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
 
       {/* Buttons */}
       <button
-        onClick={onPlay}
+        onClick={handlePlay}
         className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-4"
       >
         PLAY

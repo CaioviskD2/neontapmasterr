@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getHighScore, setHighScore } from '@/lib/storage';
 import { submitScore } from '@/lib/leaderboard';
 import { playHighScoreSound } from '@/lib/sounds';
+import { playHomeMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
 import { Loader2 } from 'lucide-react';
 
@@ -20,6 +21,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
   const [showNickname, setShowNickname] = useState(false);
 
   useEffect(() => {
+    playHomeMusic();
     incrementGamesPlayed();
     const prev = getHighScore();
     setHigh(prev);
