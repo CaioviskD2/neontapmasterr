@@ -47,4 +47,15 @@ export const playHighScoreSound = () => {
   });
 };
 
+export const playTop10Sound = () => {
+  // Epic arcade victory fanfare
+  const notes = [523, 659, 784, 1047, 784, 1047, 1319];
+  notes.forEach((f, i) => {
+    setTimeout(() => playTone(f, 0.2, 'square', 0.12), i * 80);
+  });
+  // Low bass accent
+  setTimeout(() => playTone(130, 0.5, 'sawtooth', 0.1), 0);
+  setTimeout(() => playTone(165, 0.5, 'sawtooth', 0.1), 300);
+};
+
 soundEnabled = getSoundEnabled();

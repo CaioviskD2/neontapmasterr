@@ -185,3 +185,28 @@
 .animate-slide-down {
   animation: slide-down 0.4s ease-out forwards;
 }
+
+/* Top 10 Celebration */
+@keyframes top10-overlay-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes top10-text-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  60% { transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes top10-glitch {
+  0% { transform: translate(0); }
+  25% { transform: translate(-4px, 3px) skewX(-2deg); }
+  50% { transform: translate(3px, -2px) skewX(1deg); }
+  75% { transform: translate(-2px, -3px) skewX(-1deg); }
+  100% { transform: translate(0); }
+}
+
+@keyframes top10-glow-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+}
