@@ -31,6 +31,7 @@ const Index = () => {
           score={lastScore}
           onPlayAgain={() => setScreen('game')}
           onHome={() => setScreen('home')}
+          onLeaderboard={() => setScreen('leaderboard')}
         />
       )}
       {screen === 'leaderboard' && (

@@ -1,24 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { getHighScore, setHighScore } from '@/lib/storage';
-import { submitScore } from '@/lib/leaderboard';
-import { playHighScoreSound } from '@/lib/sounds';
+import { submitScore, getPlayerRank } from '@/lib/leaderboard';
+import { playHighScoreSound, playTop10Sound } from '@/lib/sounds';
 import { playHomeMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
+import Top10Celebration from './Top10Celebration';
 import { Loader2 } from 'lucide-react';
 
 interface Props {
   score: number;
   onPlayAgain: () => void;
   onHome: () => void;
+  onLeaderboard: () => void;
 }
 
-const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
+const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderboard }) => {
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const [highScore, setHigh] = useState(0);
   const [nickname, setNickname] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showNickname, setShowNickname] = useState(false);
+  const [showTop10, setShowTop10] = useState(false);
 
   useEffect(() => {
     playHomeMusic();
@@ -50,10 +53,18 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
     
     if (success) {
       setSaved(true);
+      // Check if player entered Top 10
+      const rank = await getPlayerRank(score);
+      if (rank > 0 && rank <= 10) {
+        playTop10Sound();
+        setShowTop10(true);
+      }
     }
   };
 
   return (
+    <>
+    {showTop10 && <Top10Celebration onComplete={onLeaderboard} />}
     <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
       <h1 className="font-arcade text-2xl sm:text-3xl neon-text-red animate-glitch mb-6">
         GAME OVER
@@ -115,6 +126,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome }) => {
         HOME
       </button>
     </div>
+    </>
   );
 };
 
