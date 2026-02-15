@@ -9,17 +9,18 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('hold'), 50);
-    const t2 = setTimeout(() => setPhase('out'), 2000);
+    const t2 = setTimeout(() => setPhase('out'), 1800);
     const t3 = setTimeout(() => onComplete(), 2500);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onComplete]);
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center z-50 transition-opacity duration-300"
+      className="fixed inset-0 flex flex-col items-center justify-center z-50"
       style={{
         backgroundColor: '#0A0A0A',
         opacity: phase === 'in' ? 0 : phase === 'out' ? 0 : 1,
+        transition: 'opacity 350ms ease-in-out',
       }}
     >
       <h1
