@@ -210,3 +210,18 @@
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.4); }
 }
+
+@keyframes intro-glow {
+  0%, 100% {
+    text-shadow: 0 0 10px currentColor, 0 0 30px currentColor;
+    opacity: 0.85;
+  }
+  50% {
+    text-shadow: 0 0 20px currentColor, 0 0 60px currentColor, 0 0 100px currentColor;
+    opacity: 1;
+  }
+}
+
+.animate-intro-glow {
+  animation: intro-glow 1.6s ease-in-out infinite;
+}
