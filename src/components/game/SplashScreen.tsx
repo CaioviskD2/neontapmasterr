@@ -9,8 +9,8 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('hold'), 50);
-    const t2 = setTimeout(() => setPhase('out'), 1800);
-    const t3 = setTimeout(() => onComplete(), 2500);
+    const t2 = setTimeout(() => setPhase('out'), 4000);
+    const t3 = setTimeout(() => onComplete(), 4700);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [onComplete]);
 
@@ -20,7 +20,7 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
       style={{
         backgroundColor: '#0A0A0A',
         opacity: phase === 'in' ? 0 : phase === 'out' ? 0 : 1,
-        transition: 'opacity 350ms ease-in-out',
+        transition: 'opacity 500ms ease-in-out',
       }}
     >
       <h1

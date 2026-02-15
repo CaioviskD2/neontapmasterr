@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 
 interface Props {
   onStart: () => void;
@@ -8,11 +8,49 @@ const vibrate = (ms: number) => {
   try { navigator?.vibrate?.(ms); } catch {}
 };
 
+const INTRO_VOLUME = 0.35;
+
 const IntroScreen: React.FC<Props> = ({ onStart }) => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startedRef = useRef(false);
+
+  const startMusic = useCallback(() => {
+    if (audioRef.current || startedRef.current) return;
+    startedRef.current = true;
+    const a = new Audio('/audio/home-music.mp3');
+    a.loop = true;
+    a.volume = INTRO_VOLUME;
+    a.play().catch(() => {});
+    audioRef.current = a;
+  }, []);
+
+  const stopAndGo = useCallback(() => {
+    vibrate(10);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    onStart();
+  }, [onStart]);
+
+  // Try autoplay on mount
+  useEffect(() => {
+    startMusic();
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, [startMusic]);
+
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center z-40 animate-fade-in"
       style={{ backgroundColor: '#0A0A0A' }}
+      onClick={startMusic}
     >
       {/* Particle background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -54,7 +92,7 @@ const IntroScreen: React.FC<Props> = ({ onStart }) => {
       </p>
 
       <button
-        onClick={() => { vibrate(10); onStart(); }}
+        onClick={(e) => { e.stopPropagation(); stopAndGo(); }}
         className="font-arcade text-base sm:text-lg px-14 py-6 rounded-2xl active:scale-[0.97] transition-transform duration-100"
         style={{
           backgroundColor: 'transparent',
