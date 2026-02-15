@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { fetchGlobalLeaderboard, getPlayerRank, type LeaderboardEntry } from '@/lib/leaderboard';
+import React, { useEffect, useState, useCallback } from 'react';
+import { fetchMonthlyLeaderboard, fetchAllTimeLeaderboard, getPlayerRankMonthly, getPlayerRankAllTime, type LeaderboardEntry } from '@/lib/leaderboard';
 import { getHighScore } from '@/lib/storage';
 import { playChampionMusic } from '@/lib/music';
 import { ArrowLeft, Globe, Loader2 } from 'lucide-react';
@@ -10,49 +10,58 @@ interface Props {
   onPlay?: () => void;
 }
 
+type Tab = 'monthly' | 'alltime';
+
 const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
+  const [tab, setTab] = useState<Tab>('monthly');
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerRank, setPlayerRank] = useState<number | null>(null);
   const highScore = getHighScore();
 
-  const loadData = async () => {
-    const data = await fetchGlobalLeaderboard();
+  const loadData = useCallback(async (activeTab: Tab) => {
+    setLoading(true);
+    const data = activeTab === 'monthly'
+      ? await fetchMonthlyLeaderboard()
+      : await fetchAllTimeLeaderboard();
     setEntries(data);
 
     if (highScore > 0) {
-      const rank = await getPlayerRank(highScore);
-      if (rank > 100) setPlayerRank(rank);
-      else setPlayerRank(rank);
+      const rank = activeTab === 'monthly'
+        ? await getPlayerRankMonthly(highScore)
+        : await getPlayerRankAllTime(highScore);
+      setPlayerRank(rank);
     }
     setLoading(false);
-  };
+  }, [highScore]);
 
   useEffect(() => {
     playChampionMusic();
-    setLoading(true);
-    loadData();
+    loadData(tab);
 
-    // Realtime updates
     const channel = supabase
       .channel('leaderboard-realtime')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'leaderboard' },
-        () => { loadData(); }
+        () => { loadData(tab); }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [highScore]);
+  }, [tab, loadData]);
 
-  const isCurrentPlayerFirst = playerRank === 1;
+  const isCurrentPlayerFirst = playerRank === 1 && tab === 'monthly';
 
   const getRankStyle = (i: number) => {
     if (i === 0) return 'neon-text-gold';
     if (i === 1) return 'neon-text-silver';
     if (i === 2) return 'neon-text-bronze';
     return 'text-muted-foreground';
+  };
+
+  const handleTabChange = (newTab: Tab) => {
+    if (newTab !== tab) setTab(newTab);
   };
 
   return (
@@ -64,11 +73,35 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
         </button>
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4 text-neon-blue" />
-          <h1 className="font-arcade text-xs neon-text-blue">GLOBAL LEADERBOARD</h1>
+          <h1 className="font-arcade text-xs neon-text-blue">GLOBAL RANKING</h1>
         </div>
       </div>
 
-      {/* Defend Your Crown button */}
+      {/* Tabs */}
+      <div className="flex gap-2 px-4 pb-3">
+        <button
+          onClick={() => handleTabChange('monthly')}
+          className={`flex-1 py-2 rounded-lg font-arcade text-[9px] border transition-all ${
+            tab === 'monthly'
+              ? 'border-neon-gold/60 neon-text-gold bg-secondary/80'
+              : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+          }`}
+        >
+          MONTHLY
+        </button>
+        <button
+          onClick={() => handleTabChange('alltime')}
+          className={`flex-1 py-2 rounded-lg font-arcade text-[9px] border transition-all ${
+            tab === 'alltime'
+              ? 'border-neon-blue/60 neon-text-blue bg-secondary/80'
+              : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
+          }`}
+        >
+          ALL-TIME
+        </button>
+      </div>
+
+      {/* Defend Your Crown */}
       {isCurrentPlayerFirst && onPlay && (
         <div className="px-4 pb-3 animate-slide-down">
           <button
@@ -130,7 +163,6 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
               ))}
             </div>
 
-            {/* Player rank if outside top 100 */}
             {playerRank && playerRank > 100 && (
               <div className="mt-6 px-4 py-3 rounded-lg border border-neon-blue/30 bg-secondary/30">
                 <p className="font-arcade text-[8px] text-muted-foreground mb-1">YOUR RANK</p>

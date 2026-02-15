@@ -19,6 +19,7 @@ export type Database = {
           country: string | null
           created_at: string
           id: string
+          month: string
           nickname: string
           score: number
         }
@@ -26,6 +27,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           id?: string
+          month?: string
           nickname: string
           score: number
         }
@@ -33,6 +35,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           id?: string
+          month?: string
           nickname?: string
           score?: number
         }
