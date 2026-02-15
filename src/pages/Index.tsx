@@ -50,7 +50,7 @@ const Index = () => {
         />
       )}
       {screen === 'leaderboard' && (
-        <LeaderboardScreen onBack={() => setScreen('home')} />
+        <LeaderboardScreen onBack={() => setScreen('home')} onPlay={() => setScreen('game')} />
       )}
     </div>
   );

@@ -3,32 +3,50 @@ import { fetchGlobalLeaderboard, getPlayerRank, type LeaderboardEntry } from '@/
 import { getHighScore } from '@/lib/storage';
 import { playChampionMusic } from '@/lib/music';
 import { ArrowLeft, Globe, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
   onBack: () => void;
+  onPlay?: () => void;
 }
 
-const LeaderboardScreen: React.FC<Props> = ({ onBack }) => {
+const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerRank, setPlayerRank] = useState<number | null>(null);
   const highScore = getHighScore();
 
+  const loadData = async () => {
+    const data = await fetchGlobalLeaderboard();
+    setEntries(data);
+
+    if (highScore > 0) {
+      const rank = await getPlayerRank(highScore);
+      if (rank > 100) setPlayerRank(rank);
+      else setPlayerRank(rank);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     playChampionMusic();
-    const load = async () => {
-      setLoading(true);
-      const data = await fetchGlobalLeaderboard();
-      setEntries(data);
+    setLoading(true);
+    loadData();
 
-      if (highScore > 0) {
-        const rank = await getPlayerRank(highScore);
-        if (rank > 100) setPlayerRank(rank);
-      }
-      setLoading(false);
-    };
-    load();
+    // Realtime updates
+    const channel = supabase
+      .channel('leaderboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'leaderboard' },
+        () => { loadData(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [highScore]);
+
+  const isCurrentPlayerFirst = playerRank === 1;
 
   const getRankStyle = (i: number) => {
     if (i === 0) return 'neon-text-gold';
@@ -50,6 +68,23 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack }) => {
         </div>
       </div>
 
+      {/* Defend Your Crown button */}
+      {isCurrentPlayerFirst && onPlay && (
+        <div className="px-4 pb-3 animate-slide-down">
+          <button
+            onClick={onPlay}
+            className="w-full py-3 rounded-lg font-arcade text-[10px] border-2 animate-pulse-neon"
+            style={{
+              borderColor: 'hsl(var(--neon-gold))',
+              color: 'hsl(var(--neon-gold))',
+              boxShadow: '0 0 15px hsl(var(--neon-gold) / 0.4), 0 0 40px hsl(var(--neon-gold) / 0.2)',
+            }}
+          >
+            👑 DEFEND YOUR CROWN 👑
+          </button>
+        </div>
+      )}
+
       {/* List */}
       <div className="flex-1 overflow-y-auto px-4 pb-6">
         {loading ? (
@@ -68,16 +103,23 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack }) => {
               {entries.map((entry, i) => (
                 <div
                   key={entry.id || `${entry.nickname}-${i}`}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg bg-secondary/50 border border-border/50"
+                  className={`flex items-center justify-between px-4 py-3 rounded-lg bg-secondary/50 border border-border/50 ${i === 0 ? 'animate-pulse-neon' : ''}`}
                   style={{
-                    borderColor: i === 0 ? 'hsl(45 100% 55% / 0.3)' : i === 1 ? 'hsl(0 0% 75% / 0.3)' : i === 2 ? 'hsl(30 70% 50% / 0.3)' : undefined,
+                    borderColor: i === 0 ? 'hsl(45 100% 55% / 0.5)' : i === 1 ? 'hsl(0 0% 75% / 0.3)' : i === 2 ? 'hsl(30 70% 50% / 0.3)' : undefined,
+                    boxShadow: i === 0 ? '0 0 12px hsl(45 100% 55% / 0.3), 0 0 30px hsl(45 100% 55% / 0.1)' : undefined,
                   }}
                 >
                   <div className="flex items-center gap-3">
                     <span className={`font-arcade text-[10px] w-8 ${getRankStyle(i)}`}>
-                      #{i + 1}
+                      {i === 0 ? '👑' : `#${i + 1}`}
                     </span>
-                    <span className="font-orbitron text-sm text-foreground truncate max-w-[140px]">
+                    <span
+                      className={`font-orbitron text-sm truncate max-w-[140px] ${i === 0 ? 'font-bold' : 'text-foreground'}`}
+                      style={i === 0 ? {
+                        color: 'hsl(var(--neon-gold))',
+                        textShadow: '0 0 10px hsl(var(--neon-gold) / 0.6), 0 0 25px hsl(var(--neon-gold) / 0.3)',
+                      } : undefined}
+                    >
                       {entry.nickname}
                     </span>
                   </div>
