@@ -225,3 +225,14 @@
 .animate-intro-glow {
   animation: intro-glow 1.6s ease-in-out infinite;
 }
+
+@keyframes particle-float {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-80px) translateX(20px); opacity: 0; }
+}
+
+.animate-particle-float {
+  animation: particle-float 8s ease-in-out infinite;
+}

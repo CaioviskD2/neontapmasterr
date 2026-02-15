@@ -4,40 +4,57 @@ interface Props {
   onStart: () => void;
 }
 
+const vibrate = (ms: number) => {
+  try { navigator?.vibrate?.(ms); } catch {}
+};
+
 const IntroScreen: React.FC<Props> = ({ onStart }) => {
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center z-40 animate-fade-in"
       style={{ backgroundColor: '#0A0A0A' }}
     >
+      {/* Particle background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 18 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full animate-particle-float"
+            style={{
+              width: `${2 + (i % 3)}px`,
+              height: `${2 + (i % 3)}px`,
+              left: `${(i * 37) % 100}%`,
+              top: `${(i * 53) % 100}%`,
+              backgroundColor: i % 2 === 0 ? 'rgba(168,85,247,0.4)' : 'rgba(34,211,238,0.3)',
+              animationDelay: `${i * 0.4}s`,
+              animationDuration: `${6 + (i % 4) * 2}s`,
+            }}
+          />
+        ))}
+      </div>
+
       <h1
         className="font-arcade text-2xl sm:text-3xl md:text-4xl text-center leading-relaxed mb-2 animate-intro-glow"
-        style={{
-          color: '#a855f7',
-        }}
+        style={{ color: '#a855f7' }}
       >
         NEON TAP
       </h1>
       <h1
-        className="font-arcade text-3xl sm:text-4xl md:text-5xl text-center leading-relaxed mb-16 animate-intro-glow"
-        style={{
-          color: '#22d3ee',
-        }}
+        className="font-arcade text-3xl sm:text-4xl md:text-5xl text-center leading-relaxed mb-2 animate-intro-glow"
+        style={{ color: '#22d3ee' }}
       >
-      MASTER
+        MASTER
       </h1>
 
       <p
         className="font-orbitron text-xs sm:text-sm tracking-widest uppercase mb-16"
-        style={{
-          color: 'rgba(255,255,255,0.45)',
-        }}
+        style={{ color: 'rgba(255,255,255,0.45)' }}
       >
         Toque rápido. Suba no ranking.
       </p>
 
       <button
-        onClick={onStart}
+        onClick={() => { vibrate(10); onStart(); }}
         className="font-arcade text-base sm:text-lg px-14 py-6 rounded-2xl active:scale-[0.97] transition-transform duration-100"
         style={{
           backgroundColor: 'transparent',
