@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchGlobalLeaderboard, getPlayerRank, type LeaderboardEntry } from '@/lib/leaderboard';
 import { getHighScore } from '@/lib/storage';
+import { playChampionMusic } from '@/lib/music';
 import { ArrowLeft, Globe, Loader2 } from 'lucide-react';
 
 interface Props {
@@ -14,6 +15,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack }) => {
   const highScore = getHighScore();
 
   useEffect(() => {
+    playChampionMusic();
     const load = async () => {
       setLoading(true);
       const data = await fetchGlobalLeaderboard();

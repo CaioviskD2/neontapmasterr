@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getHighScore, setHighScore } from '@/lib/storage';
 import { submitScore, getPlayerRank } from '@/lib/leaderboard';
 import { playHighScoreSound, playTop10Sound } from '@/lib/sounds';
-import { playHomeMusic } from '@/lib/music';
+import { playHomeMusic, stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
 import Top10Celebration from './Top10Celebration';
 import { Loader2 } from 'lucide-react';
@@ -24,7 +24,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   const [showTop10, setShowTop10] = useState(false);
 
   useEffect(() => {
-    playHomeMusic();
+    stopMusic(); // silence during game over screen
     incrementGamesPlayed();
     const prev = getHighScore();
     setHigh(prev);

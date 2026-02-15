@@ -1,109 +1,120 @@
-const MUSIC_VOLUME = 0.5;
-const FADE_DURATION = 800; // ms
+/**
+ * Central AudioManager – one track at a time, fade transitions, mobile-unlock.
+ *
+ * Track catalogue:
+ *   intro, home, champion, musicgame1…musicgame10
+ *
+ * All mp3 files live in /audio/<name>.mp3
+ */
 
-type Track = 'home' | 'game';
+const VOLUME = 0.5;
+const FADE_MS = 600;
 
-const tracks: Record<Track, string> = {
-  home: '/audio/home-music.mp3',
-  game: '/audio/game-music.mp3',
+// ── track registry ──────────────────────────────────────────────
+type TrackName =
+  | 'intro'
+  | 'home'
+  | 'champion'
+  | 'musicgame1' | 'musicgame2' | 'musicgame3' | 'musicgame4' | 'musicgame5'
+  | 'musicgame6' | 'musicgame7' | 'musicgame8' | 'musicgame9' | 'musicgame10';
+
+const trackPath = (name: TrackName) => `/audio/${name}.mp3`;
+
+// ── state ───────────────────────────────────────────────────────
+let audio: HTMLAudioElement | null = null;
+let currentTrack: TrackName | null = null;
+let fadeTimer: number | null = null;
+let userUnlocked = false;
+let musicEnabled = typeof window !== 'undefined' ? localStorage.getItem('owt_sound') !== '0' : true;
+let lastGameTrack: TrackName | null = null;
+
+// ── helpers ─────────────────────────────────────────────────────
+const clearFade = () => {
+  if (fadeTimer !== null) { clearInterval(fadeTimer); fadeTimer = null; }
 };
 
-let currentTrack: Track | null = null;
-let audio: HTMLAudioElement | null = null;
-let fadeInterval: number | null = null;
-let musicEnabled = typeof window !== 'undefined' ? localStorage.getItem('owt_sound') !== '0' : true;
-let userInteracted = false;
+const fadeOut = (el: HTMLAudioElement): Promise<void> =>
+  new Promise((resolve) => {
+    clearFade();
+    if (el.paused || el.volume === 0) { el.pause(); resolve(); return; }
+    const step = el.volume / (FADE_MS / 25);
+    fadeTimer = window.setInterval(() => {
+      const next = el.volume - step;
+      if (next <= 0.01) { el.volume = 0; el.pause(); clearFade(); resolve(); }
+      else el.volume = next;
+    }, 25);
+  });
+
+const fadeIn = (el: HTMLAudioElement, vol: number) => {
+  clearFade();
+  el.volume = 0;
+  el.play().catch(() => {});
+  const step = vol / (FADE_MS / 25);
+  fadeTimer = window.setInterval(() => {
+    const next = el.volume + step;
+    if (next >= vol) { el.volume = vol; clearFade(); }
+    else el.volume = next;
+  }, 25);
+};
+
+// ── public API ──────────────────────────────────────────────────
+
+/** Call on the very first user gesture (tap / click). */
+export const markUserInteracted = () => { userUnlocked = true; };
 
 export const setMusicEnabled = (enabled: boolean) => {
   musicEnabled = enabled;
-  if (!enabled) {
-    stopMusic();
-  } else if (currentTrack) {
-    // Re-enable: resume current track
-    playTrack(currentTrack);
-  }
+  if (!enabled) stopMusic();
 };
 
 export const getMusicEnabled = () => musicEnabled;
 
-const fadeOut = (el: HTMLAudioElement): Promise<void> => {
-  return new Promise((resolve) => {
-    if (fadeInterval) clearInterval(fadeInterval);
-    const step = el.volume / (FADE_DURATION / 30);
-    fadeInterval = window.setInterval(() => {
-      const next = el.volume - step;
-      if (next <= 0.01) {
-        el.volume = 0;
-        el.pause();
-        if (fadeInterval) clearInterval(fadeInterval);
-        fadeInterval = null;
-        resolve();
-      } else {
-        el.volume = next;
-      }
-    }, 30);
-  });
+/**
+ * Play a named track. Fades out the previous one first.
+ * `loop` defaults to true.
+ */
+export const playTrack = async (
+  name: TrackName,
+  { loop = true, volume = VOLUME }: { loop?: boolean; volume?: number } = {},
+) => {
+  if (!musicEnabled || !userUnlocked) return;
+
+  // same track already playing → noop
+  if (audio && currentTrack === name && !audio.paused) return;
+
+  // fade out whatever is playing
+  if (audio && !audio.paused) await fadeOut(audio);
+
+  // destroy old element
+  if (audio) { audio.pause(); audio.src = ''; }
+
+  const el = new Audio(trackPath(name));
+  el.loop = loop;
+  audio = el;
+  currentTrack = name;
+  fadeIn(el, volume);
 };
 
-const fadeIn = (el: HTMLAudioElement) => {
-  el.volume = 0;
-  el.play().catch(() => {});
-  if (fadeInterval) clearInterval(fadeInterval);
-  const step = MUSIC_VOLUME / (FADE_DURATION / 30);
-  fadeInterval = window.setInterval(() => {
-    const next = el.volume + step;
-    if (next >= MUSIC_VOLUME) {
-      el.volume = MUSIC_VOLUME;
-      if (fadeInterval) clearInterval(fadeInterval);
-      fadeInterval = null;
-    } else {
-      el.volume = next;
-    }
-  }, 30);
+/** Hard-stop (with short fade). */
+export const stopMusic = async () => {
+  if (audio && !audio.paused) await fadeOut(audio);
+  currentTrack = null;
 };
 
-const playTrack = async (track: Track) => {
-  if (!musicEnabled || !userInteracted) return;
+// ── screen-specific helpers ─────────────────────────────────────
 
-  // If same track already playing, do nothing
-  if (audio && currentTrack === track && !audio.paused) return;
+export const playIntroMusic  = () => playTrack('intro');
+export const playHomeMusic   = () => playTrack('home');
+export const playChampionMusic = () => playTrack('champion');
 
-  // Fade out current
-  if (audio && !audio.paused) {
-    await fadeOut(audio);
-  }
-
-  // Create or reuse audio element
-  if (!audio || currentTrack !== track) {
-    if (audio) {
-      audio.pause();
-      audio.src = '';
-    }
-    audio = new Audio(tracks[track]);
-    audio.loop = true;
-    audio.volume = 0;
-  }
-
-  currentTrack = track;
-  fadeIn(audio);
-};
-
-export const stopMusic = () => {
-  if (audio && !audio.paused) {
-    fadeOut(audio);
-  }
-};
-
-export const playHomeMusic = () => {
-  userInteracted = true;
-  playTrack('home');
-};
-
+/** Picks a random game track, avoiding the one played last time. */
 export const playGameMusic = () => {
-  userInteracted = true;
-  playTrack('game');
-};
-
-export const markUserInteracted = () => {
-  userInteracted = true;
+  const pool: TrackName[] = [
+    'musicgame1','musicgame2','musicgame3','musicgame4','musicgame5',
+    'musicgame6','musicgame7','musicgame8','musicgame9','musicgame10',
+  ];
+  const candidates = pool.filter(t => t !== lastGameTrack);
+  const pick = candidates[Math.floor(Math.random() * candidates.length)];
+  lastGameTrack = pick;
+  return playTrack(pick);
 };
