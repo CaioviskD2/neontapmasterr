@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { fetchMonthlyLeaderboard, fetchAllTimeLeaderboard, getPlayerRankMonthly, getPlayerRankAllTime, type LeaderboardEntry } from '@/lib/leaderboard';
 import { getHighScore } from '@/lib/storage';
+import { getMedalForRank, getMedalEmoji } from '@/lib/medals';
 import { playChampionMusic } from '@/lib/music';
 import { ArrowLeft, Globe, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -155,6 +156,9 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
                     >
                       {entry.nickname}
                     </span>
+                    {tab === 'monthly' && getMedalForRank(i + 1) && (
+                      <span className="text-sm">{getMedalEmoji(getMedalForRank(i + 1)!)}</span>
+                    )}
                   </div>
                   <span className={`font-arcade text-xs ${getRankStyle(i)}`}>
                     {entry.score}
