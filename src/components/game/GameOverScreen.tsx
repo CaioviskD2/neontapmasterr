@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { getHighScore, setHighScore } from '@/lib/storage';
-import { submitScore, getPlayerRank } from '@/lib/leaderboard';
+import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/leaderboard';
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
 import { playHomeMusic, stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
+import { updateMedals, getMedalEmoji, type MedalTier, type MedalUpdateResult } from '@/lib/medals';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
 import { Loader2 } from 'lucide-react';
@@ -24,6 +25,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   const [showNickname, setShowNickname] = useState(false);
   const [showTop10, setShowTop10] = useState(false);
   const [showWorldOne, setShowWorldOne] = useState(false);
+  const [medalResult, setMedalResult] = useState<MedalUpdateResult | null>(null);
 
   useEffect(() => {
     stopMusic();
@@ -55,12 +57,22 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     
     if (success) {
       setSaved(true);
-      const rank = await getPlayerRank(score);
-      if (rank === 1) {
-        // World #1 has priority over Top 10
+      const [monthlyRank, allTimeRank] = await Promise.all([
+        getPlayerRankMonthly(score),
+        getPlayerRankAllTime(score),
+      ]);
+
+      // Update medals
+      if (monthlyRank > 0) {
+        const result = updateMedals(monthlyRank, allTimeRank > 0 ? allTimeRank : monthlyRank);
+        if (result.newMedal) setMedalResult(result);
+      }
+
+      // Celebration priority: World #1 > Top 10
+      if (monthlyRank === 1) {
         playWorldNumberOneSound();
         setShowWorldOne(true);
-      } else if (rank > 0 && rank <= 10) {
+      } else if (monthlyRank > 0 && monthlyRank <= 10) {
         playTop10Sound();
         setShowTop10(true);
       }
@@ -92,6 +104,18 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
         </div>
       )}
 
+      {/* New Medal Unlocked */}
+      {medalResult?.newMedal && saved && (
+        <div className="mb-6 animate-slide-down text-center">
+          <p className="font-arcade text-[8px] text-muted-foreground mb-1">NEW MEDAL UNLOCKED</p>
+          <p className="text-3xl mb-1">{getMedalEmoji(medalResult.newMedal)}</p>
+          <p className="font-arcade text-xs neon-text-gold uppercase">{medalResult.newMedal}</p>
+          {medalResult.isNewChampion && (
+            <p className="font-arcade text-[8px] neon-text-gold mt-1 animate-pulse-neon">👑 MONTHLY CHAMPION 👑</p>
+          )}
+        </div>
+      )}
+
       {showNickname && !saved && (
         <div className="w-full max-w-[280px] mb-6 animate-slide-down">
           <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">ENTER NICKNAME FOR GLOBAL RANKING</p>
@@ -114,7 +138,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
         </div>
       )}
 
-      {saved && (
+      {saved && !medalResult?.newMedal && (
         <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">✓ SCORE SAVED TO GLOBAL RANKING!</p>
       )}
 
