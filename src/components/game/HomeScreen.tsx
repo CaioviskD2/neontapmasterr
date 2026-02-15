@@ -4,6 +4,7 @@ import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
 import { setMusicEnabled, playHomeMusic, markUserInteracted } from '@/lib/music';
 import { Volume2, VolumeX } from 'lucide-react';
 
+
 interface Props {
   onPlay: () => void;
   onLeaderboard: () => void;
@@ -32,7 +33,19 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
+    <div className="relative flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in overflow-hidden">
+      {/* Background image with overlay */}
+      <div
+        className="absolute inset-0 bg-cover bg-center animate-slow-zoom"
+        style={{
+          backgroundImage: `url(/images/bg_home_tech.ai)`,
+          filter: 'blur(5px)',
+          transform: 'scale(1.1)',
+        }}
+      />
+      <div className="absolute inset-0 bg-black/60" />
+      {/* Content layer */}
+      <div className="relative z-10 flex flex-col items-center justify-center w-full">
       {/* Sound toggle */}
       <button
         onClick={toggleSound}
@@ -77,12 +90,7 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
         LEADERBOARD
       </button>
 
-      {/* Decorative circles */}
-      
-
-
-
-
+      </div>
     </div>);
 
 };
