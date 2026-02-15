@@ -15,7 +15,6 @@ export const getSoundEnabled = (): boolean => {
 
 const playTone = (freq: number, duration: number, type: OscillatorType = 'square', volume = 0.15) => {
   if (!soundEnabled || !audioCtx) return;
-  // Resume context if suspended (mobile)
   if (audioCtx.state === 'suspended') audioCtx.resume();
   
   const osc = audioCtx.createOscillator();
@@ -48,14 +47,24 @@ export const playHighScoreSound = () => {
 };
 
 export const playTop10Sound = () => {
-  // Epic arcade victory fanfare
   const notes = [523, 659, 784, 1047, 784, 1047, 1319];
   notes.forEach((f, i) => {
     setTimeout(() => playTone(f, 0.2, 'square', 0.12), i * 80);
   });
-  // Low bass accent
   setTimeout(() => playTone(130, 0.5, 'sawtooth', 0.1), 0);
   setTimeout(() => playTone(165, 0.5, 'sawtooth', 0.1), 300);
+};
+
+export const playWorldNumberOneSound = () => {
+  // Epic ascending fanfare for world #1
+  const notes = [262, 330, 392, 523, 659, 784, 1047, 1319, 1568];
+  notes.forEach((f, i) => {
+    setTimeout(() => playTone(f, 0.25, 'square', 0.12), i * 70);
+  });
+  // Deep bass
+  setTimeout(() => playTone(65, 0.8, 'sawtooth', 0.12), 0);
+  setTimeout(() => playTone(98, 0.8, 'sawtooth', 0.1), 300);
+  setTimeout(() => playTone(131, 0.6, 'sawtooth', 0.1), 600);
 };
 
 soundEnabled = getSoundEnabled();
