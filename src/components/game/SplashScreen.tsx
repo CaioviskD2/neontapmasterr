@@ -31,6 +31,24 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
         transition: 'opacity 350ms ease-in-out',
       }}
     >
+      {/* Subtle particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: `${1.5 + (i % 2)}px`,
+              height: `${1.5 + (i % 2)}px`,
+              left: `${(i * 43 + 10) % 100}%`,
+              top: `${(i * 61 + 15) % 100}%`,
+              backgroundColor: i % 2 === 0 ? 'rgba(168,85,247,0.25)' : 'rgba(34,211,238,0.2)',
+              animation: `particle-float ${8 + (i % 3) * 3}s ease-in-out ${i * 0.6}s infinite`,
+            }}
+          />
+        ))}
+      </div
+    >
       <h1
         className="font-orbitron text-4xl sm:text-5xl md:text-6xl font-black tracking-widest mb-4 animate-splash-glow"
         style={{
