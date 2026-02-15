@@ -38,7 +38,7 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
       <div
         className="absolute inset-0 bg-cover bg-center animate-slow-zoom"
         style={{
-          backgroundImage: `url(/images/bg_home_tech.ai)`,
+          backgroundImage: `url(/images/bg_home_tech.jpeg)`,
           filter: 'blur(5px)',
           transform: 'scale(1.1)',
         }}
