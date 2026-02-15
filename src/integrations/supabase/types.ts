@@ -41,12 +41,139 @@ export type Database = {
         }
         Relationships: []
       }
+      players: {
+        Row: {
+          best_alltime_rank: number | null
+          best_monthly_rank: number | null
+          bronze_count: number
+          gold_count: number
+          monthly_champion_count: number
+          nickname: string
+          silver_count: number
+          top10_entry_count: number
+          updated_at: string
+        }
+        Insert: {
+          best_alltime_rank?: number | null
+          best_monthly_rank?: number | null
+          bronze_count?: number
+          gold_count?: number
+          monthly_champion_count?: number
+          nickname: string
+          silver_count?: number
+          top10_entry_count?: number
+          updated_at?: string
+        }
+        Update: {
+          best_alltime_rank?: number | null
+          best_monthly_rank?: number | null
+          bronze_count?: number
+          gold_count?: number
+          monthly_champion_count?: number
+          nickname?: string
+          silver_count?: number
+          top10_entry_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      season_results: {
+        Row: {
+          id: string
+          medal: string | null
+          nickname: string
+          rank: number
+          score: number
+          season_id: string
+        }
+        Insert: {
+          id?: string
+          medal?: string | null
+          nickname: string
+          rank: number
+          score: number
+          season_id: string
+        }
+        Update: {
+          id?: string
+          medal?: string | null
+          nickname?: string
+          rank?: number
+          score?: number
+          season_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_results_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_scores: {
+        Row: {
+          best_score: number
+          id: string
+          nickname: string
+          season_id: string
+          updated_at: string
+        }
+        Insert: {
+          best_score: number
+          id?: string
+          nickname: string
+          season_id: string
+          updated_at?: string
+        }
+        Update: {
+          best_score?: number
+          id?: string
+          nickname?: string
+          season_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_scores_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          closed_at: string | null
+          id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          closed_at?: string | null
+          id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          closed_at?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_season_score: {
+        Args: { p_nickname: string; p_score: number; p_season_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
