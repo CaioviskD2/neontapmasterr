@@ -48,7 +48,7 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
         audioRef.current = null;
       }
       onComplete();
-    }, 3000);
+    }, 9000);
 
     return () => {
       clearTimeout(t1);
