@@ -1,7 +1,7 @@
 import React from 'react';
 import { getHighScore } from '@/lib/storage';
 import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
-import { setMusicEnabled, playHomeMusic } from '@/lib/music';
+import { setMusicEnabled, playHomeMusic, markUserInteracted } from '@/lib/music';
 import { Volume2, VolumeX } from 'lucide-react';
 
 interface Props {
@@ -21,8 +21,13 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
     if (next) playHomeMusic();
   };
 
+  // Start home music on mount
+  React.useEffect(() => {
+    markUserInteracted();
+    playHomeMusic();
+  }, []);
+
   const handlePlay = () => {
-    playHomeMusic(); // ensure user interaction registered
     onPlay();
   };
 

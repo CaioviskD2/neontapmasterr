@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { playTapSound, playGameOverSound } from '@/lib/sounds';
-import { playGameMusic } from '@/lib/music';
+import { playGameMusic, stopMusic } from '@/lib/music';
 
 interface Circle {
   id: number;
@@ -104,6 +104,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
       if (remaining <= 0) {
         gameOverRef.current = true;
         playGameOverSound();
+        stopMusic();
         vibrate();
         onGameOver(scoreRef.current);
         return;
@@ -132,6 +133,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
     if (circle.isRed) {
       gameOverRef.current = true;
       playGameOverSound();
+      stopMusic();
       vibrate();
       onGameOver(scoreRef.current);
     } else {

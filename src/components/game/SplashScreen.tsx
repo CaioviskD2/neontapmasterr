@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { playIntroMusic, markUserInteracted } from '@/lib/music';
 
 interface Props {
   onComplete: () => void;
@@ -8,6 +9,10 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
   const [phase, setPhase] = useState<'in' | 'hold' | 'out'>('in');
 
   useEffect(() => {
+    // Attempt autoplay – will succeed after first user gesture
+    markUserInteracted(); // splash is the very first screen
+    playIntroMusic();
+
     const t1 = setTimeout(() => setPhase('hold'), 50);
     const t2 = setTimeout(() => setPhase('out'), 4000);
     const t3 = setTimeout(() => onComplete(), 4700);
@@ -17,6 +22,7 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center z-50"
+      onClick={() => { markUserInteracted(); playIntroMusic(); }}
       style={{
         backgroundColor: '#0A0A0A',
         opacity: phase === 'in' ? 0 : phase === 'out' ? 0 : 1,

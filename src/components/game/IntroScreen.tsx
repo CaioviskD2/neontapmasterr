@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { playIntroMusic, stopMusic, markUserInteracted } from '@/lib/music';
 
 interface Props {
   onStart: () => void;
@@ -8,49 +9,29 @@ const vibrate = (ms: number) => {
   try { navigator?.vibrate?.(ms); } catch {}
 };
 
-const INTRO_VOLUME = 0.35;
-
 const IntroScreen: React.FC<Props> = ({ onStart }) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const startedRef = useRef(false);
+  // Intro music continues from Splash (or starts here if autoplay was blocked)
+  useEffect(() => {
+    playIntroMusic();
+  }, []);
 
-  const startMusic = useCallback(() => {
-    if (audioRef.current || startedRef.current) return;
-    startedRef.current = true;
-    const a = new Audio('/audio/home-music.mp3');
-    a.loop = true;
-    a.volume = INTRO_VOLUME;
-    a.play().catch(() => {});
-    audioRef.current = a;
+  const handleTap = useCallback(() => {
+    // Unlock audio on first gesture (mobile)
+    markUserInteracted();
+    playIntroMusic();
   }, []);
 
   const stopAndGo = useCallback(() => {
     vibrate(10);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current = null;
-    }
+    stopMusic();
     onStart();
   }, [onStart]);
-
-  // Try autoplay on mount
-  useEffect(() => {
-    startMusic();
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-        audioRef.current = null;
-      }
-    };
-  }, [startMusic]);
 
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center z-40 animate-fade-in"
       style={{ backgroundColor: '#0A0A0A' }}
-      onClick={startMusic}
+      onClick={handleTap}
     >
       {/* Particle background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
