@@ -32,13 +32,13 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
       <button
         onClick={toggleSound}
         className="absolute top-4 right-4 p-3 rounded-full border border-border hover:border-neon-blue transition-colors"
-        aria-label="Toggle sound"
-      >
-        {soundOn ? (
-          <Volume2 className="w-5 h-5 text-neon-blue" />
-        ) : (
-          <VolumeX className="w-5 h-5 text-muted-foreground" />
-        )}
+        aria-label="Toggle sound">
+
+        {soundOn ?
+        <Volume2 className="w-5 h-5 text-neon-blue" /> :
+
+        <VolumeX className="w-5 h-5 text-muted-foreground" />
+        }
       </button>
 
       {/* Title */}
@@ -50,36 +50,36 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
       </h1>
 
       {/* High Score */}
-      {highScore > 0 && (
-        <div className="mb-8 text-center animate-slide-down">
+      {highScore > 0 &&
+      <div className="mb-8 text-center animate-slide-down">
           <p className="font-arcade text-[10px] text-muted-foreground mb-1">HIGH SCORE</p>
           <p className="font-arcade text-lg neon-text-blue">{highScore}</p>
         </div>
-      )}
+      }
 
       {/* Buttons */}
       <button
         onClick={handlePlay}
-        className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-4"
-      >
+        className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-4">
+
         PLAY
       </button>
 
       <button
         onClick={onLeaderboard}
-        className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all"
-      >
+        className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all">
+
         LEADERBOARD
       </button>
 
       {/* Decorative circles */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3 opacity-30">
-        <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse-neon" />
-        <div className="w-3 h-3 rounded-full bg-neon-green animate-pulse-neon" style={{ animationDelay: '0.3s' }} />
-        <div className="w-3 h-3 rounded-full bg-neon-red animate-pulse-neon" style={{ animationDelay: '0.6s' }} />
-      </div>
-    </div>
-  );
+      
+
+
+
+
+    </div>);
+
 };
 
 export default HomeScreen;
