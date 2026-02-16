@@ -8,9 +8,10 @@ import { Volume2, VolumeX } from 'lucide-react';
 interface Props {
   onPlay: () => void;
   onLeaderboard: () => void;
+  onProfile: () => void;
 }
 
-const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
+const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile }) => {
   const [soundOn, setSoundOn] = React.useState(getSoundEnabled());
   const highScore = getHighScore();
   const medals = getMedals();
@@ -124,9 +125,16 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard }) => {
 
         <button
           onClick={onLeaderboard}
-          className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all"
+          className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all mb-3"
         >
           LEADERBOARD
+        </button>
+
+        <button
+          onClick={onProfile}
+          className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 active:scale-95 transition-all"
+        >
+          PROFILE
         </button>
       </div>
     </div>
