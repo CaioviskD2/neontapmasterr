@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { getHighScore, setHighScore } from '@/lib/storage';
 import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/leaderboard';
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
-import { playHomeMusic, stopMusic } from '@/lib/music';
+import { stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
-import { updateMedals, getMedalEmoji, type MedalTier, type MedalUpdateResult } from '@/lib/medals';
+import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
+import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
 import { Loader2 } from 'lucide-react';
@@ -19,13 +20,16 @@ interface Props {
 const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderboard }) => {
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const [highScore, setHigh] = useState(0);
-  const [nickname, setNickname] = useState('');
+  const [nickname, setNicknameInput] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showNickname, setShowNickname] = useState(false);
   const [showTop10, setShowTop10] = useState(false);
   const [showWorldOne, setShowWorldOne] = useState(false);
   const [medalResult, setMedalResult] = useState<MedalUpdateResult | null>(null);
+  const [nicknameError, setNicknameError] = useState('');
+
+  const existingNickname = getNickname();
 
   useEffect(() => {
     stopMusic();
@@ -41,41 +45,81 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     }
 
     if (score > 0) {
-      setShowNickname(true);
+      if (existingNickname) {
+        // Auto-save with existing nickname
+        setNicknameInput(existingNickname);
+        handleAutoSave(existingNickname);
+      } else {
+        setShowNickname(true);
+      }
     }
 
     showInterstitialAd();
   }, [score]);
 
-  const handleSave = async () => {
-    const trimmed = nickname.trim();
-    if (trimmed.length < 3 || trimmed.length > 12) return;
-    
+  const handleAutoSave = async (name: string) => {
     setSaving(true);
-    const success = await submitScore(trimmed, score);
+    const success = await submitScore(name, score);
     setSaving(false);
-    
+
     if (success) {
       setSaved(true);
-      const [monthlyRank, allTimeRank] = await Promise.all([
-        getPlayerRankMonthly(score),
-        getPlayerRankAllTime(score),
-      ]);
+      await checkRankAndCelebrate(score);
+    }
+  };
 
-      // Update medals
-      if (monthlyRank > 0) {
-        const result = updateMedals(monthlyRank, allTimeRank > 0 ? allTimeRank : monthlyRank);
-        if (result.newMedal) setMedalResult(result);
-      }
+  const checkRankAndCelebrate = async (playerScore: number) => {
+    const [monthlyRank, allTimeRank] = await Promise.all([
+      getPlayerRankMonthly(playerScore),
+      getPlayerRankAllTime(playerScore),
+    ]);
 
-      // Celebration priority: World #1 > Top 10
-      if (monthlyRank === 1) {
-        playWorldNumberOneSound();
-        setShowWorldOne(true);
-      } else if (monthlyRank > 0 && monthlyRank <= 10) {
-        playTop10Sound();
-        setShowTop10(true);
+    if (monthlyRank > 0) {
+      const result = updateMedals(monthlyRank, allTimeRank > 0 ? allTimeRank : monthlyRank);
+      if (result.newMedal) setMedalResult(result);
+    }
+
+    if (monthlyRank === 1) {
+      playWorldNumberOneSound();
+      setShowWorldOne(true);
+    } else if (monthlyRank > 0 && monthlyRank <= 10) {
+      playTop10Sound();
+      setShowTop10(true);
+    }
+  };
+
+  const handleSave = async () => {
+    const trimmed = nickname.trim();
+    setNicknameError('');
+
+    if (!isValidNickname(trimmed)) {
+      setNicknameError('3-12 chars, A-Z, 0-9, _ only');
+      return;
+    }
+
+    setSaving(true);
+
+    // Register nickname first
+    const regResult = await registerNickname(trimmed);
+    if (!regResult.success) {
+      setSaving(false);
+      if (regResult.reason === 'nickname_taken') {
+        setNicknameError('NICKNAME TAKEN');
+      } else if (regResult.reason === 'invalid_chars') {
+        setNicknameError('A-Z, 0-9, _ ONLY');
+      } else {
+        setNicknameError('ERROR, TRY AGAIN');
       }
+      return;
+    }
+
+    // Submit score
+    const success = await submitScore(trimmed, score);
+    setSaving(false);
+
+    if (success) {
+      setSaved(true);
+      await checkRankAndCelebrate(score);
     }
   };
 
@@ -104,6 +148,14 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
         </div>
       )}
 
+      {/* Auto-saving indicator */}
+      {existingNickname && saving && (
+        <div className="mb-6 flex items-center gap-2">
+          <Loader2 className="w-3 h-3 animate-spin text-neon-blue" />
+          <p className="font-arcade text-[8px] text-muted-foreground">SAVING AS {existingNickname}...</p>
+        </div>
+      )}
+
       {/* New Medal Unlocked */}
       {medalResult?.newMedal && saved && (
         <div className="mb-6 animate-slide-down text-center">
@@ -116,20 +168,27 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
         </div>
       )}
 
-      {showNickname && !saved && (
+      {/* Nickname input for first-time */}
+      {showNickname && !saved && !existingNickname && (
         <div className="w-full max-w-[280px] mb-6 animate-slide-down">
-          <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">ENTER NICKNAME FOR GLOBAL RANKING</p>
+          <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">CHOOSE YOUR NICKNAME</p>
           <input
             type="text"
             value={nickname}
-            onChange={e => setNickname(e.target.value.slice(0, 12))}
-            className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground font-orbitron text-center text-sm focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue"
-            placeholder="PLAYER"
+            onChange={e => {
+              setNicknameInput(e.target.value.slice(0, 12).replace(/[^A-Za-z0-9_]/g, ''));
+              setNicknameError('');
+            }}
+            className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground font-orbitron text-center text-sm focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue uppercase"
+            placeholder="PLAYER_NAME"
             maxLength={12}
           />
+          {nicknameError && (
+            <p className="font-arcade text-[7px] text-destructive mt-1 text-center">{nicknameError}</p>
+          )}
           <button
             onClick={handleSave}
-            disabled={nickname.trim().length < 3 || saving}
+            disabled={!isValidNickname(nickname) || saving}
             className="w-full mt-2 py-2 rounded-lg font-arcade text-[10px] border border-neon-blue text-neon-blue hover:bg-neon-blue/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
@@ -139,7 +198,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       )}
 
       {saved && !medalResult?.newMedal && (
-        <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">✓ SCORE SAVED TO GLOBAL RANKING!</p>
+        <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">✓ SCORE SAVED!</p>
       )}
 
       <button

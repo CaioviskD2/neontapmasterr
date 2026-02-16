@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           country: string | null
           created_at: string
+          device_id: string | null
           id: string
           month: string
           nickname: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           country?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
           month?: string
           nickname: string
@@ -34,10 +36,29 @@ export type Database = {
         Update: {
           country?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
           month?: string
           nickname?: string
           score?: number
+        }
+        Relationships: []
+      }
+      nicknames: {
+        Row: {
+          created_at: string
+          device_id: string
+          nickname: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          nickname: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          nickname?: string
         }
         Relationships: []
       }
@@ -46,34 +67,43 @@ export type Database = {
           best_alltime_rank: number | null
           best_monthly_rank: number | null
           bronze_count: number
+          device_id: string | null
           gold_count: number
           monthly_champion_count: number
           nickname: string
+          settings: Json
           silver_count: number
           top10_entry_count: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           best_alltime_rank?: number | null
           best_monthly_rank?: number | null
           bronze_count?: number
+          device_id?: string | null
           gold_count?: number
           monthly_champion_count?: number
           nickname: string
+          settings?: Json
           silver_count?: number
           top10_entry_count?: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           best_alltime_rank?: number | null
           best_monthly_rank?: number | null
           bronze_count?: number
+          device_id?: string | null
           gold_count?: number
           monthly_champion_count?: number
           nickname?: string
+          settings?: Json
           silver_count?: number
           top10_entry_count?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -115,6 +145,7 @@ export type Database = {
       season_scores: {
         Row: {
           best_score: number
+          device_id: string | null
           id: string
           nickname: string
           season_id: string
@@ -122,6 +153,7 @@ export type Database = {
         }
         Insert: {
           best_score: number
+          device_id?: string | null
           id?: string
           nickname: string
           season_id: string
@@ -129,6 +161,7 @@ export type Database = {
         }
         Update: {
           best_score?: number
+          device_id?: string | null
           id?: string
           nickname?: string
           season_id?: string
@@ -170,6 +203,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      link_google_account: {
+        Args: { p_device_id: string; p_user_id: string }
+        Returns: Json
+      }
+      register_nickname: {
+        Args: { p_device_id: string; p_nickname: string }
+        Returns: Json
+      }
       upsert_season_score: {
         Args: { p_nickname: string; p_score: number; p_season_id: string }
         Returns: Json
