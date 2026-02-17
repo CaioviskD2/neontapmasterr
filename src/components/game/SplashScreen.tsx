@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { playIntroMusic, markUserInteracted } from '@/lib/music';
+import { trackSessionStart } from '@/lib/analytics';
 
 interface Props {
   onComplete: () => void;
@@ -11,6 +12,7 @@ const SplashScreen: React.FC<Props> = ({ onComplete }) => {
   useEffect(() => {
     markUserInteracted();
     playIntroMusic();
+    trackSessionStart();
 
     // fade-in after a frame
     const t0 = requestAnimationFrame(() => setVisible(true));

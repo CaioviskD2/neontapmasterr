@@ -13,6 +13,7 @@ import {
 import { getHighScore } from '@/lib/storage';
 import { getMedalForRank, getMedalEmoji } from '@/lib/medals';
 import { playChampionMusic } from '@/lib/music';
+import { trackLeaderboardOpen } from '@/lib/analytics';
 import { ArrowLeft, Globe, Loader2, Trophy, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -70,6 +71,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
 
   useEffect(() => {
     playChampionMusic();
+    trackLeaderboardOpen(tab);
     if (tab === 'halloffame') {
       loadSeasons();
     } else {

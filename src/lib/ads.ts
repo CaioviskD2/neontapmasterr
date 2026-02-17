@@ -5,6 +5,8 @@
 // For APK: Integrate Google AdMob via Capacitor plugin
 // ============================================
 
+import { trackAdInterstitialShown, trackAdRewardedShown } from '@/lib/analytics';
+
 let gamesPlayed = parseInt(localStorage.getItem('owt_games_played') || '0', 10);
 
 export const incrementGamesPlayed = () => {
@@ -23,6 +25,7 @@ export const getGamesPlayed = () => gamesPlayed;
 export const showInterstitialAd = (): Promise<boolean> => {
   if (gamesPlayed > 0 && gamesPlayed % 2 === 0) {
     console.log('[AD] Interstitial ad would show here (game #' + gamesPlayed + ')');
+    trackAdInterstitialShown();
     // return AdMob.showInterstitial();
   }
   return Promise.resolve(false);
@@ -36,6 +39,7 @@ export const showInterstitialAd = (): Promise<boolean> => {
  */
 export const showRewardedAd = (): Promise<boolean> => {
   console.log('[AD] Rewarded ad would show here');
+  trackAdRewardedShown();
   // return AdMob.showRewardedAd();
   return Promise.resolve(false);
 };
