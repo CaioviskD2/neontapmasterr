@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { playTapSound, playGameOverSound } from '@/lib/sounds';
 import { playGameMusic, stopMusic } from '@/lib/music';
+import { trackPlayStart, trackGameOver } from '@/lib/analytics';
 
 interface Circle {
   id: number;
@@ -89,6 +90,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
   // Init
   useEffect(() => {
     playGameMusic();
+    trackPlayStart();
     const timeout = setTimeout(() => spawnCircles(0), 50);
     return () => clearTimeout(timeout);
   }, [spawnCircles]);
@@ -106,6 +108,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
         playGameOverSound();
         stopMusic();
         vibrate();
+        trackGameOver(scoreRef.current);
         onGameOver(scoreRef.current);
         return;
       }
@@ -135,6 +138,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
       playGameOverSound();
       stopMusic();
       vibrate();
+      trackGameOver(scoreRef.current);
       onGameOver(scoreRef.current);
     } else {
       playTapSound();

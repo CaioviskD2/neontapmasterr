@@ -4,6 +4,7 @@ import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/l
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
 import { stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
+import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1 } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
 import Top10Celebration from './Top10Celebration';
@@ -42,6 +43,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       setHigh(score);
       setIsNewHighScore(true);
       playHighScoreSound();
+      trackNewHighScore(score);
     }
 
     if (score > 0) {
@@ -82,9 +84,11 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     if (monthlyRank === 1) {
       playWorldNumberOneSound();
       setShowWorldOne(true);
+      trackBecameWorld1(playerScore);
     } else if (monthlyRank > 0 && monthlyRank <= 10) {
       playTop10Sound();
       setShowTop10(true);
+      trackEnteredTop10(monthlyRank, playerScore);
     }
   };
 
@@ -119,6 +123,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
 
     if (success) {
       setSaved(true);
+      trackRankSubmitted(trimmed, score);
       await checkRankAndCelebrate(score);
     }
   };
