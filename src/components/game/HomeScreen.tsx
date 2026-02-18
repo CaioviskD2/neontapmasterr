@@ -4,6 +4,7 @@ import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
 import { setMusicEnabled, playHomeMusic, markUserInteracted } from '@/lib/music';
 import { getMedals, getTotalMedals } from '@/lib/medals';
 import { Volume2, VolumeX } from 'lucide-react';
+import AdBanner from './AdBanner';
 
 interface Props {
   onPlay: () => void;
@@ -136,6 +137,11 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile }) => {
         >
           PROFILE
         </button>
+
+        {/* Banner ad */}
+        <div className="mt-6 w-full max-w-[320px]">
+          <AdBanner />
+        </div>
       </div>
     </div>
   );

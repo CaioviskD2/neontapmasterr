@@ -14,6 +14,7 @@ const Index = () => {
   const [phase, setPhase] = useState<AppPhase>('splash');
   const [screen, setScreen] = useState<Screen>('home');
   const [lastScore, setLastScore] = useState(0);
+  const [continueScore, setContinueScore] = useState<number | null>(null);
 
   const handleSplashComplete = useCallback(() => setPhase('intro'), []);
   const handleIntroStart = useCallback(() => setPhase('main'), []);
@@ -21,6 +22,12 @@ const Index = () => {
   const handleGameOver = (score: number) => {
     setLastScore(score);
     setScreen('gameover');
+  };
+
+  const handleContinue = () => {
+    // Revive: go back to game with the current score as starting point
+    setContinueScore(lastScore);
+    setScreen('game');
   };
 
   if (phase === 'splash') {
@@ -41,14 +48,19 @@ const Index = () => {
         />
       )}
       {screen === 'game' && (
-        <GameScreen onGameOver={handleGameOver} />
+        <GameScreen
+          onGameOver={handleGameOver}
+          initialScore={continueScore ?? undefined}
+          key={continueScore !== null ? `continue-${continueScore}` : 'new'}
+        />
       )}
       {screen === 'gameover' && (
         <GameOverScreen
           score={lastScore}
-          onPlayAgain={() => setScreen('game')}
+          onPlayAgain={() => { setContinueScore(null); setScreen('game'); }}
           onHome={() => setScreen('home')}
           onLeaderboard={() => setScreen('leaderboard')}
+          onContinue={handleContinue}
         />
       )}
       {screen === 'leaderboard' && (
