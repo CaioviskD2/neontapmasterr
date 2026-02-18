@@ -3,7 +3,7 @@ import { getHighScore, setHighScore } from '@/lib/storage';
 import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/leaderboard';
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
 import { stopMusic } from '@/lib/music';
-import { incrementGamesPlayed, showInterstitialAd } from '@/lib/ads';
+import { incrementGamesPlayed, showInterstitialAd, showRewardedAd } from '@/lib/ads';
 import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1 } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
@@ -16,9 +16,10 @@ interface Props {
   onPlayAgain: () => void;
   onHome: () => void;
   onLeaderboard: () => void;
+  onContinue?: () => void;
 }
 
-const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderboard }) => {
+const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderboard, onContinue }) => {
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const [highScore, setHigh] = useState(0);
   const [nickname, setNicknameInput] = useState('');
@@ -29,6 +30,8 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   const [showWorldOne, setShowWorldOne] = useState(false);
   const [medalResult, setMedalResult] = useState<MedalUpdateResult | null>(null);
   const [nicknameError, setNicknameError] = useState('');
+  const [loadingRewarded, setLoadingRewarded] = useState(false);
+  const [continueUsed, setContinueUsed] = useState(false);
 
   const existingNickname = getNickname();
 
@@ -204,6 +207,32 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
 
       {saved && !medalResult?.newMedal && (
         <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">✓ SCORE SAVED!</p>
+      )}
+
+      {/* Continue with rewarded ad */}
+      {onContinue && !continueUsed && (
+        <button
+          onClick={async () => {
+            setLoadingRewarded(true);
+            const rewarded = await showRewardedAd();
+            setLoadingRewarded(false);
+            if (rewarded) {
+              setContinueUsed(true);
+              onContinue();
+            }
+          }}
+          disabled={loadingRewarded}
+          className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm border-2 border-neon-gold text-neon-gold hover:bg-neon-gold/10 active:scale-95 transition-all mb-3 flex items-center justify-center gap-2"
+        >
+          {loadingRewarded ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              WATCHING AD...
+            </>
+          ) : (
+            '▶ CONTINUE (WATCH AD)'
+          )}
+        </button>
       )}
 
       <button

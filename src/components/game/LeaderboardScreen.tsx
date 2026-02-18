@@ -16,6 +16,7 @@ import { playChampionMusic } from '@/lib/music';
 import { trackLeaderboardOpen } from '@/lib/analytics';
 import { ArrowLeft, Globe, Loader2, Trophy, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import AdBanner from './AdBanner';
 
 interface Props {
   onBack: () => void;
@@ -309,6 +310,9 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
           </>
         )}
       </div>
+
+      {/* Banner ad */}
+      <AdBanner />
     </div>
   );
 };

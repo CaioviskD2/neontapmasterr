@@ -12,6 +12,7 @@ interface Circle {
 
 interface Props {
   onGameOver: (score: number) => void;
+  initialScore?: number;
 }
 
 const CIRCLE_SIZE = 64; // px
@@ -60,17 +61,18 @@ const generateCircles = (count: number, areaW: number, areaH: number): Circle[] 
   return circles;
 };
 
-const GameScreen: React.FC<Props> = ({ onGameOver }) => {
-  const [score, setScore] = useState(0);
+const GameScreen: React.FC<Props> = ({ onGameOver, initialScore }) => {
+  const startScore = initialScore ?? 0;
+  const [score, setScore] = useState(startScore);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [timeLeft, setTimeLeft] = useState(1);
-  const [maxTime, setMaxTime] = useState(INITIAL_TIME);
+  const [maxTime, setMaxTime] = useState(() => Math.max(MIN_TIME, INITIAL_TIME - startScore * 30));
   const [ripple, setRipple] = useState<{ x: number; y: number; green: boolean } | null>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
   const startTimeRef = useRef(Date.now());
   const gameOverRef = useRef(false);
-  const scoreRef = useRef(0);
+  const scoreRef = useRef(startScore);
 
   const getCircleCount = useCallback((s: number) => {
     return 3 + Math.floor(s / 5); // +1 green every 5 points
@@ -90,8 +92,8 @@ const GameScreen: React.FC<Props> = ({ onGameOver }) => {
   // Init
   useEffect(() => {
     playGameMusic();
-    trackPlayStart();
-    const timeout = setTimeout(() => spawnCircles(0), 50);
+    if (!initialScore) trackPlayStart();
+    const timeout = setTimeout(() => spawnCircles(startScore), 50);
     return () => clearTimeout(timeout);
   }, [spawnCircles]);
 
