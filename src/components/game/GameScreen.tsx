@@ -13,13 +13,14 @@ interface Circle {
 interface Props {
   onGameOver: (score: number) => void;
   initialScore?: number;
+  invulnerableStart?: boolean;
 }
 
 const CIRCLE_SIZE = 64; // px
 const INITIAL_TIME = 2000; // ms
 const MIN_TIME = 800;
 
-const generateCircles = (count: number, areaW: number, areaH: number): Circle[] => {
+const generateCircles = (count: number, areaW: number, areaH: number, allGreen = false): Circle[] => {
   const circles: Circle[] = [];
   const padding = 10;
   const maxAttempts = 100;
@@ -37,7 +38,7 @@ const generateCircles = (count: number, areaW: number, areaH: number): Circle[] 
       });
 
       if (!overlaps) {
-        circles.push({ id: i, x, y, isRed: i === count - 1 });
+        circles.push({ id: i, x, y, isRed: allGreen ? false : i === count - 1 });
         placed = true;
         break;
       }
@@ -47,7 +48,7 @@ const generateCircles = (count: number, areaW: number, areaH: number): Circle[] 
         id: i,
         x: padding + Math.random() * (areaW - CIRCLE_SIZE - padding * 2),
         y: padding + Math.random() * (areaH - CIRCLE_SIZE - padding * 2),
-        isRed: i === count - 1,
+        isRed: allGreen ? false : i === count - 1,
       });
     }
   }
@@ -61,13 +62,14 @@ const generateCircles = (count: number, areaW: number, areaH: number): Circle[] 
   return circles;
 };
 
-const GameScreen: React.FC<Props> = ({ onGameOver, initialScore }) => {
+const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableStart }) => {
   const startScore = initialScore ?? 0;
   const [score, setScore] = useState(startScore);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [timeLeft, setTimeLeft] = useState(1);
   const [maxTime, setMaxTime] = useState(() => Math.max(MIN_TIME, INITIAL_TIME - startScore * 30));
   const [ripple, setRipple] = useState<{ x: number; y: number; green: boolean } | null>(null);
+  const [invulnerable, setInvulnerable] = useState(!!invulnerableStart);
   const areaRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
   const startTimeRef = useRef(Date.now());
@@ -75,26 +77,39 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore }) => {
   const scoreRef = useRef(startScore);
 
   const getCircleCount = useCallback((s: number) => {
-    return 3 + Math.floor(s / 5); // +1 green every 5 points
+    return 3 + Math.floor(s / 5);
   }, []);
 
   const getMaxTime = useCallback((s: number) => {
     return Math.max(MIN_TIME, INITIAL_TIME - s * 30);
   }, []);
 
-  const spawnCircles = useCallback((s: number) => {
+  const spawnCircles = useCallback((s: number, allGreen = false) => {
     if (!areaRef.current) return;
     const rect = areaRef.current.getBoundingClientRect();
     const count = getCircleCount(s);
-    setCircles(generateCircles(count, rect.width, rect.height));
+    setCircles(generateCircles(count, rect.width, rect.height, allGreen));
   }, [getCircleCount]);
 
   // Init
   useEffect(() => {
     playGameMusic();
     if (!initialScore) trackPlayStart();
-    const timeout = setTimeout(() => spawnCircles(startScore), 50);
-    return () => clearTimeout(timeout);
+
+    // If continuing with invulnerability, spawn all-green circles for 1s
+    if (invulnerableStart) {
+      setTimeout(() => spawnCircles(startScore, true), 50);
+      const timer = setTimeout(() => {
+        setInvulnerable(false);
+        // Respawn with red circle after invulnerability ends
+        spawnCircles(startScore, false);
+        startTimeRef.current = Date.now();
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      const timeout = setTimeout(() => spawnCircles(startScore), 50);
+      return () => clearTimeout(timeout);
+    }
   }, [spawnCircles]);
 
   // Timer loop
@@ -136,6 +151,8 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore }) => {
     setTimeout(() => setRipple(null), 400);
 
     if (circle.isRed) {
+      // During invulnerability, red taps are ignored
+      if (invulnerable) return;
       gameOverRef.current = true;
       playGameOverSound();
       stopMusic();
@@ -151,7 +168,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore }) => {
       setMaxTime(newMax);
       startTimeRef.current = Date.now();
       setTimeLeft(1);
-      spawnCircles(newScore);
+      spawnCircles(newScore, invulnerable);
     }
   };
 
@@ -164,7 +181,12 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore }) => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <p className="font-arcade text-[10px] text-muted-foreground">SCORE</p>
-        <p className="font-arcade text-lg neon-text-blue">{score}</p>
+        <div className="flex items-center gap-3">
+          {invulnerable && (
+            <span className="font-arcade text-[8px] neon-text-gold animate-pulse-neon">🛡️ SHIELD</span>
+          )}
+          <p className="font-arcade text-lg neon-text-blue">{score}</p>
+        </div>
       </div>
 
       {/* Timer bar */}

@@ -14,7 +14,7 @@ const Index = () => {
   const [phase, setPhase] = useState<AppPhase>('splash');
   const [screen, setScreen] = useState<Screen>('home');
   const [lastScore, setLastScore] = useState(0);
-  const [continueScore, setContinueScore] = useState<number | null>(null);
+  const [continueUsedThisRun, setContinueUsedThisRun] = useState(false);
 
   const handleSplashComplete = useCallback(() => setPhase('intro'), []);
   const handleIntroStart = useCallback(() => setPhase('main'), []);
@@ -25,8 +25,13 @@ const Index = () => {
   };
 
   const handleContinue = () => {
-    // Revive: go back to game with the current score as starting point
-    setContinueScore(lastScore);
+    setContinueUsedThisRun(true);
+    setScreen('game');
+  };
+
+  const handleNewGame = () => {
+    setContinueUsedThisRun(false);
+    setLastScore(0);
     setScreen('game');
   };
 
@@ -42,7 +47,7 @@ const Index = () => {
     <div className="w-full h-[100dvh] overflow-hidden bg-background animate-fade-in">
       {screen === 'home' && (
         <HomeScreen
-          onPlay={() => setScreen('game')}
+          onPlay={handleNewGame}
           onLeaderboard={() => setScreen('leaderboard')}
           onProfile={() => setScreen('profile')}
         />
@@ -50,21 +55,22 @@ const Index = () => {
       {screen === 'game' && (
         <GameScreen
           onGameOver={handleGameOver}
-          initialScore={continueScore ?? undefined}
-          key={continueScore !== null ? `continue-${continueScore}` : 'new'}
+          initialScore={continueUsedThisRun ? lastScore : undefined}
+          invulnerableStart={continueUsedThisRun}
+          key={continueUsedThisRun ? `continue-${lastScore}` : `new-${Date.now()}`}
         />
       )}
       {screen === 'gameover' && (
         <GameOverScreen
           score={lastScore}
-          onPlayAgain={() => { setContinueScore(null); setScreen('game'); }}
+          onPlayAgain={handleNewGame}
           onHome={() => setScreen('home')}
           onLeaderboard={() => setScreen('leaderboard')}
-          onContinue={handleContinue}
+          onContinue={continueUsedThisRun ? undefined : handleContinue}
         />
       )}
       {screen === 'leaderboard' && (
-        <LeaderboardScreen onBack={() => setScreen('home')} onPlay={() => setScreen('game')} />
+        <LeaderboardScreen onBack={() => setScreen('home')} onPlay={handleNewGame} />
       )}
       {screen === 'profile' && (
         <ProfileScreen onBack={() => setScreen('home')} />
