@@ -10,9 +10,10 @@ interface Props {
   onPlay: () => void;
   onLeaderboard: () => void;
   onProfile: () => void;
+  onChallenges: () => void;
 }
 
-const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile }) => {
+const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChallenges }) => {
   const [soundOn, setSoundOn] = React.useState(getSoundEnabled());
   const highScore = getHighScore();
   const medals = getMedals();
@@ -129,6 +130,13 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile }) => {
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all mb-3"
         >
           LEADERBOARD
+        </button>
+
+        <button
+          onClick={onChallenges}
+          className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-gold text-neon-gold hover:bg-neon-gold/10 active:scale-95 transition-all mb-3"
+        >
+          ⚡ CHALLENGES
         </button>
 
         <button
