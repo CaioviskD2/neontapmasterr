@@ -31,17 +31,24 @@ interface Props {
 const CIRCLE_SIZE = 64;
 const INITIAL_TIME = 2000;
 const MIN_TIME = 800;
+const MIN_AREA = 200;
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 const generateCircles = (count: number, areaW: number, areaH: number, allGreen = false): Circle[] => {
   const circles: Circle[] = [];
   const padding = 10;
   const maxAttempts = 100;
+  const maxX = Math.max(padding, areaW - CIRCLE_SIZE - padding);
+  const maxY = Math.max(padding, areaH - CIRCLE_SIZE - padding);
 
   for (let i = 0; i < count; i++) {
     let placed = false;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const x = padding + Math.random() * (areaW - CIRCLE_SIZE - padding * 2);
-      const y = padding + Math.random() * (areaH - CIRCLE_SIZE - padding * 2);
+      const x = clamp(padding + Math.random() * (maxX - padding), padding, maxX);
+      const y = clamp(padding + Math.random() * (maxY - padding), padding, maxY);
+
+      if (isNaN(x) || isNaN(y)) continue;
 
       const overlaps = circles.some(c => {
         const dx = c.x - x;
@@ -56,10 +63,12 @@ const generateCircles = (count: number, areaW: number, areaH: number, allGreen =
       }
     }
     if (!placed) {
+      const x = clamp(padding + Math.random() * (maxX - padding), padding, maxX);
+      const y = clamp(padding + Math.random() * (maxY - padding), padding, maxY);
       circles.push({
         id: i,
-        x: padding + Math.random() * (areaW - CIRCLE_SIZE - padding * 2),
-        y: padding + Math.random() * (areaH - CIRCLE_SIZE - padding * 2),
+        x: isNaN(x) ? padding : x,
+        y: isNaN(y) ? padding : y,
         isRed: allGreen ? false : i === count - 1,
       });
     }
@@ -104,11 +113,33 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   }, []);
 
   const spawnCircles = useCallback((s: number, allGreen = false) => {
-    if (!areaRef.current) return;
-    const rect = areaRef.current.getBoundingClientRect();
-    const count = getCircleCount(s);
-    setCircles(generateCircles(count, rect.width, rect.height, allGreen));
+    const trySpawn = () => {
+      if (!areaRef.current) return;
+      const w = areaRef.current.clientWidth;
+      const h = areaRef.current.clientHeight;
+      if (w < MIN_AREA || h < MIN_AREA) {
+        requestAnimationFrame(trySpawn);
+        return;
+      }
+      const count = getCircleCount(s);
+      setCircles(generateCircles(count, w, h, allGreen));
+    };
+    trySpawn();
   }, [getCircleCount]);
+
+  // Re-spawn on resize/orientation change
+  useEffect(() => {
+    const handleResize = () => {
+      if (gameOverRef.current) return;
+      spawnCircles(scoreRef.current, invulnerable);
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [spawnCircles, invulnerable]);
 
   // Init
   useEffect(() => {
@@ -285,7 +316,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
       <div
         ref={areaRef}
         className="flex-1 relative mx-2 mb-2 overflow-hidden rounded-lg"
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'none', minHeight: 0 }}
       >
         {circles.map(circle => (
           <button
