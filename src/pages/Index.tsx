@@ -6,9 +6,10 @@ import GameScreen from '@/components/game/GameScreen';
 import GameOverScreen from '@/components/game/GameOverScreen';
 import LeaderboardScreen from '@/components/game/LeaderboardScreen';
 import ProfileScreen from '@/components/game/ProfileScreen';
+import ChallengesScreen from '@/components/game/ChallengesScreen';
 
 type AppPhase = 'splash' | 'intro' | 'main';
-type Screen = 'home' | 'game' | 'gameover' | 'leaderboard' | 'profile';
+type Screen = 'home' | 'game' | 'gameover' | 'leaderboard' | 'profile' | 'challenges';
 
 const Index = () => {
   const [phase, setPhase] = useState<AppPhase>('splash');
@@ -50,6 +51,7 @@ const Index = () => {
           onPlay={handleNewGame}
           onLeaderboard={() => setScreen('leaderboard')}
           onProfile={() => setScreen('profile')}
+          onChallenges={() => setScreen('challenges')}
         />
       )}
       {screen === 'game' && (
@@ -74,6 +76,9 @@ const Index = () => {
       )}
       {screen === 'profile' && (
         <ProfileScreen onBack={() => setScreen('home')} />
+      )}
+      {screen === 'challenges' && (
+        <ChallengesScreen onBack={() => setScreen('home')} />
       )}
     </div>
   );

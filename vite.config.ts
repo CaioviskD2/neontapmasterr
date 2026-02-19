@@ -29,9 +29,9 @@ export default defineConfig(({ mode }) => ({
         name: "One Wrong Tap",
         short_name: "OneWrongTap",
         description: "Tap the green circles. Avoid the red one. How far can you go?",
-        theme_color: "#00FF88",
-        background_color: "#0A0A0A",
-        display: "standalone",
+        theme_color: "#39ff14",
+        background_color: "#0f0f1a",
+        display: "fullscreen",
         orientation: "portrait",
         start_url: "/",
         icons: [
