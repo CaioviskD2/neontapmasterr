@@ -16,11 +16,11 @@ export interface ChallengeDefinition {
 
 export const CHALLENGES: ChallengeDefinition[] = [
   {
-    id: 'beat_12_in_60s',
-    title: 'BEAT 12 IN 60s',
-    description: 'Score 12 points within 60 seconds',
+    id: 'beat_18_in_60s',
+    title: 'BEAT 18 IN 60s',
+    description: 'Score 18 points within 60 seconds',
     totalTimeMs: 60_000,
-    targetScore: 12,
+    targetScore: 18,
     disableContinue: true,
   },
   {
@@ -32,11 +32,11 @@ export const CHALLENGES: ChallengeDefinition[] = [
     disableContinue: true,
   },
   {
-    id: 'perfect_10',
-    title: 'PERFECT 10',
-    description: 'Score 10 points without any mistakes',
+    id: 'perfect_12',
+    title: 'PERFECT 12',
+    description: 'Score 12 points without any mistakes',
     totalTimeMs: 0,
-    targetScore: 10,
+    targetScore: 12,
     disableContinue: true,
   },
 ];

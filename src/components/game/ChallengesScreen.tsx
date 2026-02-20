@@ -9,9 +9,9 @@ interface Props {
 }
 
 const ICONS: Record<string, React.ReactNode> = {
-  'beat_12_in_60s': <Target className="w-5 h-5 text-neon-blue" />,
+  'beat_18_in_60s': <Target className="w-5 h-5 text-neon-blue" />,
   'speed_tap_20s': <Zap className="w-5 h-5 text-neon-gold" />,
-  'perfect_10': <Trophy className="w-5 h-5 text-neon-green" />,
+  'perfect_12': <Trophy className="w-5 h-5 text-neon-green" />,
 };
 
 const ChallengesScreen: React.FC<Props> = ({ onBack }) => {

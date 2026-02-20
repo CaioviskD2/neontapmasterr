@@ -29,8 +29,13 @@ interface Props {
 }
 
 const CIRCLE_SIZE = 64;
+// Normal mode constants
 const INITIAL_TIME = 2000;
 const MIN_TIME = 800;
+// Hardcore (challenge) mode constants
+const HC_INITIAL_TIME = 1600;
+const HC_MIN_TIME = 650;
+const HC_TIME_REDUCTION = 45; // ms per point
 const MIN_AREA = 200;
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -84,10 +89,14 @@ const generateCircles = (count: number, areaW: number, areaH: number, allGreen =
 
 const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableStart, config }) => {
   const startScore = initialScore ?? 0;
+  const isHardcore = !!(config && (config.totalTimeMs || config.targetScore || config.disableContinue));
   const [score, setScore] = useState(startScore);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [timeLeft, setTimeLeft] = useState(1);
-  const [maxTime, setMaxTime] = useState(() => Math.max(MIN_TIME, INITIAL_TIME - startScore * 30));
+  const [maxTime, setMaxTime] = useState(() => {
+    if (isHardcore) return Math.max(HC_MIN_TIME, HC_INITIAL_TIME - startScore * HC_TIME_REDUCTION);
+    return Math.max(MIN_TIME, INITIAL_TIME - startScore * 30);
+  });
   const [ripple, setRipple] = useState<{ x: number; y: number; green: boolean } | null>(null);
   const [invulnerable, setInvulnerable] = useState(!!invulnerableStart);
 
@@ -105,12 +114,14 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   const hasChallengeTimer = !!(config?.totalTimeMs && config.totalTimeMs > 0);
 
   const getCircleCount = useCallback((s: number) => {
-    return 3 + Math.floor(s / 5);
-  }, []);
+    // Hardcore: +1 circle every 3 pts; Normal: every 5 pts
+    return 3 + Math.floor(s / (isHardcore ? 3 : 5));
+  }, [isHardcore]);
 
   const getMaxTime = useCallback((s: number) => {
+    if (isHardcore) return Math.max(HC_MIN_TIME, HC_INITIAL_TIME - s * HC_TIME_REDUCTION);
     return Math.max(MIN_TIME, INITIAL_TIME - s * 30);
-  }, []);
+  }, [isHardcore]);
 
   const spawnCircles = useCallback((s: number, allGreen = false) => {
     const trySpawn = () => {
