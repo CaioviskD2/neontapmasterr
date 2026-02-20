@@ -52,7 +52,27 @@
     --sidebar-border: 240 20% 20%;
     --sidebar-ring: 120 100% 55%;
   }
-}
+  }
+
+  /* ─── Neon Blue theme ─── */
+  [data-theme="blue"] {
+    --primary: 200 100% 55%;
+    --primary-foreground: 240 33% 6%;
+    --ring: 200 100% 55%;
+    --neon-green: 200 100% 55%;   /* repurpose green slot as main accent */
+    --neon-blue: 180 100% 50%;
+  }
+
+  /* ─── Cyber Purple theme ─── */
+  [data-theme="purple"] {
+    --primary: 270 100% 65%;
+    --primary-foreground: 240 33% 6%;
+    --ring: 270 100% 65%;
+    --neon-green: 270 100% 65%;   /* repurpose green slot as main accent */
+    --neon-red: 320 100% 60%;    /* hot pink as danger */
+    --neon-blue: 290 100% 70%;
+    --background: 270 30% 5%;
+  }
 
 @layer base {
   * {

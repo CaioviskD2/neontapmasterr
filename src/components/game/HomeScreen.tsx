@@ -1,9 +1,8 @@
 import React from 'react';
 import { getHighScore } from '@/lib/storage';
-import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
-import { setMusicEnabled, playHomeMusic, markUserInteracted } from '@/lib/music';
+import { markUserInteracted, playHomeMusic } from '@/lib/music';
 import { getMedals, getTotalMedals } from '@/lib/medals';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import AdBanner from './AdBanner';
 
 interface Props {
@@ -11,21 +10,13 @@ interface Props {
   onLeaderboard: () => void;
   onProfile: () => void;
   onChallenges: () => void;
+  onSettings: () => void;
 }
 
-const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChallenges }) => {
-  const [soundOn, setSoundOn] = React.useState(getSoundEnabled());
+const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChallenges, onSettings }) => {
   const highScore = getHighScore();
   const medals = getMedals();
   const hasMedals = getTotalMedals(medals) > 0 || medals.monthlyChampionCount > 0 || medals.top10EntryCount > 0;
-
-  const toggleSound = () => {
-    const next = !soundOn;
-    setSoundOn(next);
-    setSoundEnabled(next);
-    setMusicEnabled(next);
-    if (next) playHomeMusic();
-  };
 
   React.useEffect(() => {
     markUserInteracted();
@@ -47,17 +38,13 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
 
       {/* Content layer */}
       <div className="relative z-10 flex flex-col items-center justify-center w-full">
-        {/* Sound toggle */}
+        {/* Settings gear icon */}
         <button
-          onClick={toggleSound}
+          onPointerDown={onSettings}
           className="absolute top-4 right-4 p-3 rounded-full border border-border hover:border-neon-blue transition-colors"
-          aria-label="Toggle sound"
+          aria-label="Settings"
         >
-          {soundOn ? (
-            <Volume2 className="w-5 h-5 text-neon-blue" />
-          ) : (
-            <VolumeX className="w-5 h-5 text-muted-foreground" />
-          )}
+          <Settings className="w-5 h-5 text-neon-blue" />
         </button>
 
         {/* Title */}
@@ -119,28 +106,28 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
 
         {/* Buttons */}
         <button
-          onClick={onPlay}
+          onPointerDown={onPlay}
           className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-4"
         >
           PLAY
         </button>
 
         <button
-          onClick={onLeaderboard}
+          onPointerDown={onLeaderboard}
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all mb-3"
         >
           LEADERBOARD
         </button>
 
         <button
-          onClick={onChallenges}
+          onPointerDown={onChallenges}
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-gold text-neon-gold hover:bg-neon-gold/10 active:scale-95 transition-all mb-3"
         >
           ⚡ CHALLENGES
         </button>
 
         <button
-          onClick={onProfile}
+          onPointerDown={onProfile}
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 active:scale-95 transition-all"
         >
           PROFILE

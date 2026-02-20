@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import SplashScreen from '@/components/game/SplashScreen';
 import IntroScreen from '@/components/game/IntroScreen';
 import HomeScreen from '@/components/game/HomeScreen';
@@ -7,15 +7,23 @@ import GameOverScreen from '@/components/game/GameOverScreen';
 import LeaderboardScreen from '@/components/game/LeaderboardScreen';
 import ProfileScreen from '@/components/game/ProfileScreen';
 import ChallengesScreen from '@/components/game/ChallengesScreen';
+import SettingsScreen from '@/components/game/SettingsScreen';
+import { getSettings, applyTheme } from '@/lib/settings';
 
 type AppPhase = 'splash' | 'intro' | 'main';
-type Screen = 'home' | 'game' | 'gameover' | 'leaderboard' | 'profile' | 'challenges';
+type Screen = 'home' | 'game' | 'gameover' | 'leaderboard' | 'profile' | 'challenges' | 'settings';
 
 const Index = () => {
   const [phase, setPhase] = useState<AppPhase>('splash');
   const [screen, setScreen] = useState<Screen>('home');
   const [lastScore, setLastScore] = useState(0);
   const [continueUsedThisRun, setContinueUsedThisRun] = useState(false);
+
+  // Apply saved theme on mount
+  useEffect(() => {
+    const { selectedTheme } = getSettings();
+    applyTheme(selectedTheme);
+  }, []);
 
   const handleSplashComplete = useCallback(() => setPhase('intro'), []);
   const handleIntroStart = useCallback(() => setPhase('main'), []);
@@ -52,6 +60,7 @@ const Index = () => {
           onLeaderboard={() => setScreen('leaderboard')}
           onProfile={() => setScreen('profile')}
           onChallenges={() => setScreen('challenges')}
+          onSettings={() => setScreen('settings')}
         />
       )}
       {screen === 'game' && (
@@ -80,8 +89,12 @@ const Index = () => {
       {screen === 'challenges' && (
         <ChallengesScreen onBack={() => setScreen('home')} />
       )}
+      {screen === 'settings' && (
+        <SettingsScreen onBack={() => setScreen('home')} />
+      )}
     </div>
   );
 };
 
 export default Index;
+
