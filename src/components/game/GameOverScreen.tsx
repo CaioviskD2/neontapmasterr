@@ -7,6 +7,7 @@ import { incrementGamesPlayed, showInterstitialAd, showRewardedAd } from '@/lib/
 import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1 } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
+import { t } from '@/i18n';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
 import { Loader2 } from 'lucide-react';
@@ -51,7 +52,6 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
 
     if (score > 0) {
       if (existingNickname) {
-        // Auto-save with existing nickname
         setNicknameInput(existingNickname);
         handleAutoSave(existingNickname);
       } else {
@@ -66,7 +66,6 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     setSaving(true);
     const success = await submitScore(name, score);
     setSaving(false);
-
     if (success) {
       setSaved(true);
       await checkRankAndCelebrate(score);
@@ -78,12 +77,10 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       getPlayerRankMonthly(playerScore),
       getPlayerRankAllTime(playerScore),
     ]);
-
     if (monthlyRank > 0) {
       const result = updateMedals(monthlyRank, allTimeRank > 0 ? allTimeRank : monthlyRank);
       if (result.newMedal) setMedalResult(result);
     }
-
     if (monthlyRank === 1) {
       playWorldNumberOneSound();
       setShowWorldOne(true);
@@ -100,30 +97,26 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     setNicknameError('');
 
     if (!isValidNickname(trimmed)) {
-      setNicknameError('3-12 chars, A-Z, 0-9, _ only');
+      setNicknameError(t('gameover_nick_error_length'));
       return;
     }
 
     setSaving(true);
-
-    // Register nickname first
     const regResult = await registerNickname(trimmed);
     if (!regResult.success) {
       setSaving(false);
       if (regResult.reason === 'nickname_taken') {
-        setNicknameError('NICKNAME TAKEN');
+        setNicknameError(t('gameover_nick_error_taken'));
       } else if (regResult.reason === 'invalid_chars') {
-        setNicknameError('A-Z, 0-9, _ ONLY');
+        setNicknameError(t('gameover_nick_error_chars'));
       } else {
-        setNicknameError('ERROR, TRY AGAIN');
+        setNicknameError(t('gameover_nick_error_generic'));
       }
       return;
     }
 
-    // Submit score
     const success = await submitScore(trimmed, score);
     setSaving(false);
-
     if (success) {
       setSaved(true);
       trackRankSubmitted(trimmed, score);
@@ -137,49 +130,46 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     {showTop10 && !showWorldOne && <Top10Celebration onComplete={onLeaderboard} />}
     <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
       <h1 className="font-arcade text-2xl sm:text-3xl neon-text-red animate-glitch mb-6">
-        GAME OVER
+        {t('gameover_title')}
       </h1>
 
       <div className="text-center mb-4">
-        <p className="font-arcade text-[10px] text-muted-foreground mb-1">YOUR SCORE</p>
+        <p className="font-arcade text-[10px] text-muted-foreground mb-1">{t('gameover_your_score')}</p>
         <p className="font-arcade text-3xl neon-text-blue">{score}</p>
       </div>
 
       <div className="text-center mb-6">
-        <p className="font-arcade text-[10px] text-muted-foreground mb-1">HIGH SCORE</p>
+        <p className="font-arcade text-[10px] text-muted-foreground mb-1">{t('gameover_high_score')}</p>
         <p className="font-arcade text-lg neon-text-gold">{highScore}</p>
       </div>
 
       {isNewHighScore && (
         <div className="mb-6 animate-pulse-neon">
-          <p className="font-arcade text-xs neon-text-gold">★ NEW HIGH SCORE ★</p>
+          <p className="font-arcade text-xs neon-text-gold">{t('gameover_new_high')}</p>
         </div>
       )}
 
-      {/* Auto-saving indicator */}
       {existingNickname && saving && (
         <div className="mb-6 flex items-center gap-2">
           <Loader2 className="w-3 h-3 animate-spin text-neon-blue" />
-          <p className="font-arcade text-[8px] text-muted-foreground">SAVING AS {existingNickname}...</p>
+          <p className="font-arcade text-[8px] text-muted-foreground">{t('gameover_saving_as')} {existingNickname}...</p>
         </div>
       )}
 
-      {/* New Medal Unlocked */}
       {medalResult?.newMedal && saved && (
         <div className="mb-6 animate-slide-down text-center">
-          <p className="font-arcade text-[8px] text-muted-foreground mb-1">NEW MEDAL UNLOCKED</p>
+          <p className="font-arcade text-[8px] text-muted-foreground mb-1">{t('gameover_new_medal')}</p>
           <p className="text-3xl mb-1">{getMedalEmoji(medalResult.newMedal)}</p>
           <p className="font-arcade text-xs neon-text-gold uppercase">{medalResult.newMedal}</p>
           {medalResult.isNewChampion && (
-            <p className="font-arcade text-[8px] neon-text-gold mt-1 animate-pulse-neon">👑 MONTHLY CHAMPION 👑</p>
+            <p className="font-arcade text-[8px] neon-text-gold mt-1 animate-pulse-neon">{t('gameover_monthly_champion')}</p>
           )}
         </div>
       )}
 
-      {/* Nickname input for first-time */}
       {showNickname && !saved && !existingNickname && (
         <div className="w-full max-w-[280px] mb-6 animate-slide-down">
-          <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">CHOOSE YOUR NICKNAME</p>
+          <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">{t('gameover_choose_nick')}</p>
           <input
             type="text"
             value={nickname}
@@ -200,16 +190,15 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
             className="w-full mt-2 py-2 rounded-lg font-arcade text-[10px] border border-neon-blue text-neon-blue hover:bg-neon-blue/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-            {saving ? 'SAVING...' : 'SAVE TO GLOBAL RANKING'}
+            {saving ? t('gameover_saving') : t('gameover_save')}
           </button>
         </div>
       )}
 
       {saved && !medalResult?.newMedal && (
-        <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">✓ SCORE SAVED!</p>
+        <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">{t('gameover_saved')}</p>
       )}
 
-      {/* Continue with rewarded ad */}
       {onContinue && !continueUsed && (
         <button
           onClick={async () => {
@@ -227,10 +216,10 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
           {loadingRewarded ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              WATCHING AD...
+              {t('gameover_watching')}
             </>
           ) : (
-            '▶ CONTINUE (WATCH AD)'
+            t('gameover_continue')
           )}
         </button>
       )}
@@ -239,14 +228,14 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
         onClick={onPlayAgain}
         className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-3"
       >
-        PLAY AGAIN
+        {t('gameover_play_again')}
       </button>
 
       <button
         onClick={onHome}
         className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 active:scale-95 transition-all"
       >
-        HOME
+        {t('gameover_home')}
       </button>
     </div>
     </>

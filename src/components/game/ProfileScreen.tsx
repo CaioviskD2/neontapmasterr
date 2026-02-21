@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { linkGoogleAccount } from '@/lib/player';
 import { getHighScore } from '@/lib/storage';
 import { ArrowLeft, Loader2, User } from 'lucide-react';
+import { t } from '@/i18n';
 
 interface Props {
   onBack: () => void;
@@ -36,14 +37,11 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
     const { error } = await lovable.auth.signInWithOAuth('google', {
       redirect_uri: window.location.origin,
     });
-
     if (error) {
       console.error('Google sign-in error:', error);
       setLinking(false);
       return;
     }
-
-    // After redirect back, check for session
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user?.id) {
       await linkGoogleAccount(session.user.id);
@@ -62,41 +60,37 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col min-h-[100dvh] grid-bg animate-float-in">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <button onClick={onBack} className="p-2 rounded-full border border-border hover:border-neon-blue transition-colors">
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </button>
         <div className="flex items-center gap-2">
           <User className="w-4 h-4 text-neon-green" />
-          <h1 className="font-arcade text-xs neon-text-green">PROFILE</h1>
+          <h1 className="font-arcade text-xs neon-text-green">{t('profile_title')}</h1>
         </div>
       </div>
 
       <div className="flex-1 px-4 pb-6 overflow-y-auto">
-        {/* Nickname */}
         <div className="text-center mb-6">
-          <p className="font-arcade text-[8px] text-muted-foreground mb-1">PLAYER</p>
-          <p className="font-arcade text-lg neon-text-green">{nickname || 'NO NAME'}</p>
+          <p className="font-arcade text-[8px] text-muted-foreground mb-1">{t('profile_player')}</p>
+          <p className="font-arcade text-lg neon-text-green">{nickname || t('profile_no_name')}</p>
         </div>
 
-        {/* High Score */}
         <div className="text-center mb-6">
-          <p className="font-arcade text-[8px] text-muted-foreground mb-1">LOCAL HIGH SCORE</p>
+          <p className="font-arcade text-[8px] text-muted-foreground mb-1">{t('profile_local_high')}</p>
           <p className="font-arcade text-lg neon-text-blue">{highScore}</p>
         </div>
 
-        {/* Best Ranks */}
         {profile && (
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border/50 text-center">
-              <p className="font-arcade text-[7px] text-muted-foreground mb-1">BEST MONTHLY</p>
+              <p className="font-arcade text-[7px] text-muted-foreground mb-1">{t('profile_best_monthly')}</p>
               <p className="font-arcade text-sm neon-text-gold">
                 {profile.best_monthly_rank ? `#${profile.best_monthly_rank}` : '—'}
               </p>
             </div>
             <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border/50 text-center">
-              <p className="font-arcade text-[7px] text-muted-foreground mb-1">BEST ALL-TIME</p>
+              <p className="font-arcade text-[7px] text-muted-foreground mb-1">{t('profile_best_alltime')}</p>
               <p className="font-arcade text-sm neon-text-blue">
                 {profile.best_alltime_rank ? `#${profile.best_alltime_rank}` : '—'}
               </p>
@@ -104,10 +98,9 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
           </div>
         )}
 
-        {/* Medals */}
         {profile && (
           <div className="mb-6 px-4 py-4 rounded-lg bg-secondary/50 border border-border/50">
-            <p className="font-arcade text-[8px] text-muted-foreground mb-3 text-center">MEDALS</p>
+            <p className="font-arcade text-[8px] text-muted-foreground mb-3 text-center">{t('profile_medals')}</p>
             <div className="flex items-center justify-center gap-5">
               <div className="text-center">
                 <span className="text-2xl">🥇</span>
@@ -126,12 +119,12 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
               <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-border/30">
                 {profile.monthly_champion_count > 0 && (
                   <span className="font-arcade text-[7px] neon-text-gold">
-                    👑 CHAMPION ×{profile.monthly_champion_count}
+                    👑 {t('profile_champion')} ×{profile.monthly_champion_count}
                   </span>
                 )}
                 {profile.top10_entry_count > 0 && (
                   <span className="font-arcade text-[7px] neon-text-green">
-                    ⭐ TOP 10 ×{profile.top10_entry_count}
+                    ⭐ {t('profile_top10')} ×{profile.top10_entry_count}
                   </span>
                 )}
               </div>
@@ -139,7 +132,6 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
           </div>
         )}
 
-        {/* Google Link */}
         {!isLinked && (
           <button
             onClick={handleLinkGoogle}
@@ -147,11 +139,11 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
             className="w-full py-3 rounded-lg font-arcade text-[9px] border border-neon-blue text-neon-blue hover:bg-neon-blue/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
           >
             {linking ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
-            {linking ? 'LINKING...' : '🔗 LINK GOOGLE ACCOUNT'}
+            {linking ? t('profile_linking') : t('profile_link_google')}
           </button>
         )}
         {isLinked && (
-          <p className="font-arcade text-[8px] neon-text-green text-center">✓ GOOGLE ACCOUNT LINKED</p>
+          <p className="font-arcade text-[8px] neon-text-green text-center">{t('profile_linked')}</p>
         )}
       </div>
     </div>

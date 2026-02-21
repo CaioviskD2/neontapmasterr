@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { t } from '@/i18n';
 
 interface Props {
   onComplete: () => void;
@@ -216,7 +217,7 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
             className="font-arcade text-sm sm:text-xl md:text-2xl neon-text-gold leading-relaxed"
             style={{ animation: 'top10-glitch 0.15s ease-in-out 5, top10-glow-pulse 1s ease-in-out infinite' }}
           >
-            YOU ARE THE
+            {t('cel_you_are')}
           </p>
           <p
             className="font-arcade text-2xl sm:text-4xl md:text-5xl mt-2"
@@ -226,7 +227,7 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
               animation: 'top10-glitch 0.15s ease-in-out 5 0.1s, world1-glow 1.5s ease-in-out infinite',
             }}
           >
-            WORLD #1
+            {t('cel_world1')}
           </p>
         </div>
       )}

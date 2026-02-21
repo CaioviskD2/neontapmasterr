@@ -16,6 +16,7 @@ import { playChampionMusic } from '@/lib/music';
 import { trackLeaderboardOpen } from '@/lib/analytics';
 import { ArrowLeft, Globe, Loader2, Trophy, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { t } from '@/i18n';
 import AdBanner from './AdBanner';
 
 interface Props {
@@ -32,7 +33,6 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
   const [playerRank, setPlayerRank] = useState<number | null>(null);
   const highScore = getHighScore();
 
-  // Hall of Fame state
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
   const [seasonResults, setSeasonResults] = useState<SeasonResult[]>([]);
@@ -45,7 +45,6 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
       ? await fetchMonthlyLeaderboard()
       : await fetchAllTimeLeaderboard();
     setEntries(data);
-
     if (highScore > 0) {
       const rank = activeTab === 'monthly'
         ? await getPlayerRankMonthly(highScore)
@@ -83,18 +82,9 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
     if (tab !== 'halloffame') {
       const channel = supabase
         .channel('leaderboard-realtime')
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: tab === 'monthly' ? 'season_scores' : 'leaderboard' },
-          () => { loadData(tab); }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'season_scores' },
-          () => { if (tab === 'monthly') loadData(tab); }
-        )
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: tab === 'monthly' ? 'season_scores' : 'leaderboard' }, () => { loadData(tab); })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'season_scores' }, () => { if (tab === 'monthly') loadData(tab); })
         .subscribe();
-
       return () => { supabase.removeChannel(channel); };
     }
   }, [tab, loadData, loadSeasons]);
@@ -114,6 +104,12 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
     return `${months[parseInt(month) - 1]} ${year}`;
   };
 
+  const tabLabels: Record<Tab, string> = {
+    monthly: t('lb_monthly'),
+    alltime: t('lb_alltime'),
+    halloffame: t('lb_halloffame'),
+  };
+
   return (
     <div className="flex flex-col min-h-[100dvh] grid-bg animate-float-in">
       {/* Header */}
@@ -131,7 +127,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
             <Globe className="w-4 h-4 text-neon-blue" />
           )}
           <h1 className="font-arcade text-xs neon-text-blue">
-            {selectedSeason ? formatSeasonName(selectedSeason) : 'GLOBAL RANKING'}
+            {selectedSeason ? formatSeasonName(selectedSeason) : t('lb_title')}
           </h1>
         </div>
       </div>
@@ -139,21 +135,19 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
       {/* Tabs */}
       {!selectedSeason && (
         <div className="flex gap-1 px-4 pb-3">
-          {(['monthly', 'alltime', 'halloffame'] as Tab[]).map((t) => (
+          {(['monthly', 'alltime', 'halloffame'] as Tab[]).map((tb) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tb}
+              onClick={() => setTab(tb)}
               className={`flex-1 py-2 rounded-lg font-arcade text-[8px] border transition-all ${
-                tab === t
-                  ? t === 'halloffame'
-                    ? 'border-neon-gold/60 neon-text-gold bg-secondary/80'
-                    : t === 'monthly'
+                tab === tb
+                  ? tb === 'halloffame' || tb === 'monthly'
                     ? 'border-neon-gold/60 neon-text-gold bg-secondary/80'
                     : 'border-neon-blue/60 neon-text-blue bg-secondary/80'
                   : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
               }`}
             >
-              {t === 'monthly' ? 'MONTHLY' : t === 'alltime' ? 'ALL-TIME' : 'HALL OF FAME'}
+              {tabLabels[tb]}
             </button>
           ))}
         </div>
@@ -171,7 +165,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
               boxShadow: '0 0 15px hsl(var(--neon-gold) / 0.4), 0 0 40px hsl(var(--neon-gold) / 0.2)',
             }}
           >
-            👑 DEFEND YOUR CROWN 👑
+            {t('lb_defend_crown')}
           </button>
         </div>
       )}
@@ -183,11 +177,10 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
             <Loader2 className="w-6 h-6 text-neon-blue animate-spin" />
           </div>
         ) : tab === 'halloffame' && !selectedSeason ? (
-          // Hall of Fame: list of closed seasons
           seasons.length === 0 ? (
             <div className="flex items-center justify-center h-[50vh]">
               <p className="font-arcade text-[10px] text-muted-foreground text-center">
-                NO COMPLETED SEASONS YET<br />FIRST SEASON CLOSES END OF MONTH
+                {t('lb_no_seasons')}<br />{t('lb_first_season')}
               </p>
             </div>
           ) : (
@@ -200,9 +193,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
                 >
                   <div className="flex items-center gap-3">
                     <Trophy className="w-4 h-4 text-neon-gold" />
-                    <span className="font-arcade text-[10px] neon-text-gold">
-                      {formatSeasonName(s.id)}
-                    </span>
+                    <span className="font-arcade text-[10px] neon-text-gold">{formatSeasonName(s.id)}</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 </button>
@@ -210,14 +201,13 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
             </div>
           )
         ) : tab === 'halloffame' && selectedSeason ? (
-          // Season detail
           loadingResults ? (
             <div className="flex items-center justify-center h-[50vh]">
               <Loader2 className="w-6 h-6 text-neon-gold animate-spin" />
             </div>
           ) : seasonResults.length === 0 ? (
             <div className="flex items-center justify-center h-[50vh]">
-              <p className="font-arcade text-[10px] text-muted-foreground">NO RESULTS</p>
+              <p className="font-arcade text-[10px] text-muted-foreground">{t('lb_no_results')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -236,22 +226,13 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
                     </span>
                     <span
                       className={`font-orbitron text-sm truncate max-w-[120px] ${r.rank === 1 ? 'font-bold' : 'text-foreground'}`}
-                      style={r.rank === 1 ? {
-                        color: 'hsl(var(--neon-gold))',
-                        textShadow: '0 0 10px hsl(var(--neon-gold) / 0.6)',
-                      } : undefined}
+                      style={r.rank === 1 ? { color: 'hsl(var(--neon-gold))', textShadow: '0 0 10px hsl(var(--neon-gold) / 0.6)' } : undefined}
                     >
                       {r.nickname}
                     </span>
-                    {r.medal && (
-                      <span className="text-sm">
-                        {r.medal === 'gold' ? '🥇' : r.medal === 'silver' ? '🥈' : '🥉'}
-                      </span>
-                    )}
+                    {r.medal && <span className="text-sm">{r.medal === 'gold' ? '🥇' : r.medal === 'silver' ? '🥈' : '🥉'}</span>}
                   </div>
-                  <span className={`font-arcade text-xs ${getRankStyle(r.rank - 1)}`}>
-                    {r.score}
-                  </span>
+                  <span className={`font-arcade text-xs ${getRankStyle(r.rank - 1)}`}>{r.score}</span>
                 </div>
               ))}
             </div>
@@ -259,7 +240,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
         ) : entries.length === 0 ? (
           <div className="flex items-center justify-center h-[50vh]">
             <p className="font-arcade text-[10px] text-muted-foreground text-center">
-              NO SCORES YET<br />PLAY TO BE #1!
+              {t('lb_no_scores')}<br />{t('lb_play_first')}
             </p>
           </div>
         ) : (
@@ -280,10 +261,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
                     </span>
                     <span
                       className={`font-orbitron text-sm truncate max-w-[120px] ${i === 0 ? 'font-bold' : 'text-foreground'}`}
-                      style={i === 0 ? {
-                        color: 'hsl(var(--neon-gold))',
-                        textShadow: '0 0 10px hsl(var(--neon-gold) / 0.6), 0 0 25px hsl(var(--neon-gold) / 0.3)',
-                      } : undefined}
+                      style={i === 0 ? { color: 'hsl(var(--neon-gold))', textShadow: '0 0 10px hsl(var(--neon-gold) / 0.6), 0 0 25px hsl(var(--neon-gold) / 0.3)' } : undefined}
                     >
                       {entry.nickname}
                     </span>
@@ -291,16 +269,14 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
                       <span className="text-sm">{getMedalEmoji(getMedalForRank(i + 1)!)}</span>
                     )}
                   </div>
-                  <span className={`font-arcade text-xs ${getRankStyle(i)}`}>
-                    {entry.score}
-                  </span>
+                  <span className={`font-arcade text-xs ${getRankStyle(i)}`}>{entry.score}</span>
                 </div>
               ))}
             </div>
 
             {playerRank && playerRank > 100 && (
               <div className="mt-6 px-4 py-3 rounded-lg border border-neon-blue/30 bg-secondary/30">
-                <p className="font-arcade text-[8px] text-muted-foreground mb-1">YOUR RANK</p>
+                <p className="font-arcade text-[8px] text-muted-foreground mb-1">{t('lb_your_rank')}</p>
                 <div className="flex items-center justify-between">
                   <span className="font-arcade text-xs neon-text-blue">#{playerRank}</span>
                   <span className="font-arcade text-xs text-foreground">{highScore} pts</span>
@@ -311,7 +287,6 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
         )}
       </div>
 
-      {/* Banner ad */}
       <AdBanner />
     </div>
   );

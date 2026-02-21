@@ -3,6 +3,7 @@ import { getHighScore } from '@/lib/storage';
 import { markUserInteracted, playHomeMusic } from '@/lib/music';
 import { getMedals, getTotalMedals } from '@/lib/medals';
 import { Settings } from 'lucide-react';
+import { t } from '@/i18n';
 import AdBanner from './AdBanner';
 
 interface Props {
@@ -49,16 +50,16 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
 
         {/* Title */}
         <h1 className="font-arcade text-2xl sm:text-3xl md:text-4xl neon-text-green text-center leading-relaxed mb-2">
-          ONE WRONG
+          {t('home_title_1')}
         </h1>
         <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl neon-text-red text-center leading-relaxed mb-10">
-          TAP
+          {t('home_title_2')}
         </h1>
 
         {/* High Score */}
         {highScore > 0 && (
           <div className="mb-6 text-center animate-slide-down">
-            <p className="font-arcade text-[10px] text-muted-foreground mb-1">HIGH SCORE</p>
+            <p className="font-arcade text-[10px] text-muted-foreground mb-1">{t('home_high_score')}</p>
             <p className="font-arcade text-lg neon-text-blue">{highScore}</p>
           </div>
         )}
@@ -66,7 +67,7 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
         {/* Your Medals */}
         {hasMedals && (
           <div className="mb-8 w-full max-w-[280px] px-4 py-3 rounded-lg bg-secondary/50 border border-border/50 animate-slide-down">
-            <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">YOUR MEDALS</p>
+            <p className="font-arcade text-[8px] text-muted-foreground mb-2 text-center">{t('home_your_medals')}</p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               {medals.goldCount > 0 && (
                 <div className="flex items-center gap-1">
@@ -91,12 +92,12 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
               <div className="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-border/30">
                 {medals.monthlyChampionCount > 0 && (
                   <span className="font-arcade text-[7px] neon-text-gold">
-                    👑 CHAMPION ×{medals.monthlyChampionCount}
+                    👑 {t('home_champion')} ×{medals.monthlyChampionCount}
                   </span>
                 )}
                 {medals.top10EntryCount > 0 && (
                   <span className="font-arcade text-[7px] neon-text-green">
-                    ⭐ TOP 10 ×{medals.top10EntryCount}
+                    ⭐ {t('home_top10')} ×{medals.top10EntryCount}
                   </span>
                 )}
               </div>
@@ -109,28 +110,28 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
           onPointerDown={onPlay}
           className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform mb-4"
         >
-          PLAY
+          {t('home_play')}
         </button>
 
         <button
           onPointerDown={onLeaderboard}
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-blue text-neon-blue hover:bg-neon-blue/10 active:scale-95 transition-all mb-3"
         >
-          LEADERBOARD
+          {t('home_leaderboard')}
         </button>
 
         <button
           onPointerDown={onChallenges}
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border-2 border-neon-gold text-neon-gold hover:bg-neon-gold/10 active:scale-95 transition-all mb-3"
         >
-          ⚡ CHALLENGES
+          {t('home_challenges')}
         </button>
 
         <button
           onPointerDown={onProfile}
           className="w-full max-w-[280px] py-3 px-8 rounded-lg font-arcade text-[10px] border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 active:scale-95 transition-all"
         >
-          PROFILE
+          {t('home_profile')}
         </button>
 
         {/* Banner ad */}
