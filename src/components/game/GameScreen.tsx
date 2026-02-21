@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { playTapSound, playGameOverSound } from '@/lib/sounds';
 import { playGameMusic, stopMusic } from '@/lib/music';
 import { trackPlayStart, trackGameOver } from '@/lib/analytics';
+import { t } from '@/i18n';
 
 interface Circle {
   id: number;
@@ -297,7 +298,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex items-center gap-3">
-          <p className="font-arcade text-[10px] text-muted-foreground">SCORE</p>
+          <p className="font-arcade text-[10px] text-muted-foreground">{t('game_score')}</p>
           {config?.targetScore && (
             <p className="font-arcade text-[8px] text-muted-foreground">/ {config.targetScore}</p>
           )}
@@ -309,7 +310,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
             </span>
           )}
           {invulnerable && (
-            <span className="font-arcade text-[8px] neon-text-gold animate-pulse-neon">🛡️ SHIELD</span>
+            <span className="font-arcade text-[8px] neon-text-gold animate-pulse-neon">{t('game_shield')}</span>
           )}
           <p className="font-arcade text-lg neon-text-blue">{score}</p>
         </div>

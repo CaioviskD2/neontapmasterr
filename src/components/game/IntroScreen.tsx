@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { playIntroMusic, stopMusic, markUserInteracted } from '@/lib/music';
+import { t } from '@/i18n';
 
 interface Props {
   onStart: () => void;
@@ -75,7 +76,7 @@ const IntroScreen: React.FC<Props> = ({ onStart }) => {
         className="font-orbitron text-[10px] sm:text-xs tracking-[0.25em] uppercase mb-20"
         style={{ color: 'rgba(255,255,255,0.4)' }}
       >
-        Tap fast. Climb the rankings.
+        {t('intro_subtitle')}
       </p>
 
       <button
@@ -93,7 +94,7 @@ const IntroScreen: React.FC<Props> = ({ onStart }) => {
           textShadow: '0 0 8px rgba(168,85,247,0.5)',
         }}
       >
-        TAP TO START
+        {t('intro_start')}
       </button>
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { t } from '@/i18n';
 
 interface Particle {
   id: number;
@@ -138,13 +139,13 @@ const Top10Celebration: React.FC<Props> = ({ onComplete }) => {
             className="font-arcade text-lg sm:text-2xl md:text-3xl neon-text-gold leading-relaxed"
             style={{ animation: 'top10-glitch 0.15s ease-in-out 4, top10-glow-pulse 1s ease-in-out infinite' }}
           >
-            YOU ENTERED
+            {t('cel_entered')}
           </p>
           <p
             className="font-arcade text-2xl sm:text-4xl md:text-5xl neon-text-green mt-2"
             style={{ animation: 'top10-glitch 0.15s ease-in-out 4 0.1s, top10-glow-pulse 1s ease-in-out infinite 0.2s' }}
           >
-            THE TOP 10
+            {t('cel_top10')}
           </p>
         </div>
       )}

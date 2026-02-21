@@ -11,6 +11,7 @@ import ChallengesScreen from '@/components/game/ChallengesScreen';
 import SettingsScreen from '@/components/game/SettingsScreen';
 import { getSettings, applyTheme } from '@/lib/settings';
 import { isTutorialCompleted, markFirstGameStart, checkQuickDeath } from '@/lib/tutorial';
+import { t } from '@/i18n';
 
 type AppPhase = 'splash' | 'intro' | 'tutorial' | 'main';
 type Screen = 'home' | 'game' | 'gameover' | 'leaderboard' | 'profile' | 'challenges' | 'settings';
@@ -22,7 +23,6 @@ const Index = () => {
   const [continueUsedThisRun, setContinueUsedThisRun] = useState(false);
   const [showQuickDeathHint, setShowQuickDeathHint] = useState(false);
 
-  // Apply saved theme on mount
   useEffect(() => {
     const { selectedTheme } = getSettings();
     applyTheme(selectedTheme);
@@ -31,12 +31,10 @@ const Index = () => {
   const handleSplashComplete = useCallback(() => setPhase('intro'), []);
 
   const handleIntroStart = useCallback(() => {
-    // Show tutorial only the first time
     setPhase(isTutorialCompleted() ? 'main' : 'tutorial');
   }, []);
 
   const handleGameOver = (score: number) => {
-    // Check quick-death hint condition (first ever game, died in < 2s with 0 score)
     if (checkQuickDeath(score)) {
       setShowQuickDeathHint(true);
       setTimeout(() => setShowQuickDeathHint(false), 4000);
@@ -53,29 +51,25 @@ const Index = () => {
   const handleNewGame = () => {
     setContinueUsedThisRun(false);
     setLastScore(0);
-    markFirstGameStart(); // track for quick-death hint
+    markFirstGameStart();
     setScreen('game');
   };
 
-  if (phase === 'splash') {
-    return <SplashScreen onComplete={handleSplashComplete} />;
-  }
+  // Force re-render when returning from settings (language may have changed)
+  const handleSettingsBack = () => {
+    setScreen('home');
+  };
 
-  if (phase === 'intro') {
-    return <IntroScreen onStart={handleIntroStart} />;
-  }
-
-  if (phase === 'tutorial') {
-    return <TutorialScreen onComplete={() => setPhase('main')} />;
-  }
+  if (phase === 'splash') return <SplashScreen onComplete={handleSplashComplete} />;
+  if (phase === 'intro') return <IntroScreen onStart={handleIntroStart} />;
+  if (phase === 'tutorial') return <TutorialScreen onComplete={() => setPhase('main')} />;
 
   return (
     <div className="w-full h-[100dvh] overflow-hidden bg-background animate-fade-in">
-      {/* Quick-death contextual hint */}
       {showQuickDeathHint && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-secondary border border-neon-gold animate-slide-down pointer-events-none">
           <p className="font-arcade text-[8px] neon-text-gold text-center">
-            Tap only green circles!
+            {t('hint_tap_green')}
           </p>
         </div>
       )}
@@ -115,11 +109,10 @@ const Index = () => {
         <ChallengesScreen onBack={() => setScreen('home')} />
       )}
       {screen === 'settings' && (
-        <SettingsScreen onBack={() => setScreen('home')} />
+        <SettingsScreen onBack={handleSettingsBack} />
       )}
     </div>
   );
 };
 
 export default Index;
-

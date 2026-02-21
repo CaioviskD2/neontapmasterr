@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, CheckCircle, Zap, Target, Trophy } from 'lucide-react';
 import { CHALLENGES, isChallengeCompleted, markChallengeCompleted, type ChallengeDefinition } from '@/lib/challenges';
 import { trackEvent } from '@/lib/analytics';
+import { t } from '@/i18n';
 import GameScreen, { type GameConfig } from './GameScreen';
 
 interface Props {
@@ -42,7 +43,6 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
     setActiveChallenge(null);
   };
 
-  // Playing a challenge
   if (activeChallenge) {
     const gameConfig: GameConfig = {
       totalTimeMs: activeChallenge.totalTimeMs || undefined,
@@ -50,7 +50,6 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
       disableContinue: activeChallenge.disableContinue,
       onChallengeComplete: handleChallengeComplete,
     };
-
     return (
       <GameScreen
         onGameOver={handleChallengeGameOver}
@@ -60,31 +59,28 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
     );
   }
 
-  // Challenge complete celebration
   if (showComplete) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
         <div className="text-6xl mb-6 animate-pulse-neon">🎉</div>
         <h1 className="font-arcade text-xl neon-text-green mb-4 text-center">
-          CHALLENGE COMPLETE!
+          {t('ch_complete')}
         </h1>
-        <p className="font-arcade text-xs neon-text-blue mb-8">SCORE: {completedScore}</p>
+        <p className="font-arcade text-xs neon-text-blue mb-8">{t('ch_score')}: {completedScore}</p>
         <button
           onClick={() => setShowComplete(false)}
           className="w-full max-w-[280px] py-4 px-8 rounded-lg font-arcade text-sm bg-neon-green text-background neon-glow-green hover:scale-105 active:scale-95 transition-transform"
         >
-          BACK TO CHALLENGES
+          {t('ch_back')}
         </button>
       </div>
     );
   }
 
-  // Challenge list
   trackEvent('challenge_open');
 
   return (
     <div className="flex flex-col min-h-[100dvh] grid-bg animate-float-in">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <button
           onClick={onBack}
@@ -92,10 +88,9 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
         >
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </button>
-        <h1 className="font-arcade text-xs neon-text-blue">CHALLENGES</h1>
+        <h1 className="font-arcade text-xs neon-text-blue">{t('ch_title')}</h1>
       </div>
 
-      {/* Challenge cards */}
       <div className="flex-1 px-4 pb-6 space-y-3">
         {CHALLENGES.map((c) => {
           const completed = isChallengeCompleted(c.id);
@@ -118,7 +113,7 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
               </div>
               <p className="font-orbitron text-xs text-muted-foreground">{c.description}</p>
               {completed && (
-                <p className="font-arcade text-[7px] neon-text-green mt-2">✓ COMPLETED</p>
+                <p className="font-arcade text-[7px] neon-text-green mt-2">{t('ch_completed')}</p>
               )}
             </button>
           );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { markTutorialCompleted } from '@/lib/tutorial';
 import { trackEvent } from '@/lib/analytics';
+import { t } from '@/i18n';
 
 interface Props {
   onComplete: () => void;
@@ -56,38 +57,22 @@ const placeCircles = (
   return placed;
 };
 
-const STEP_CONFIG: Record<
-  Step,
-  { headline: string; sub: string; defs: { isRed: boolean }[] }
-> = {
-  1: {
-    headline: 'TAP THE GREEN',
-    sub: 'Tap the glowing green circle',
-    defs: [{ isRed: false }],
-  },
-  2: {
-    headline: 'AVOID THE RED',
-    sub: 'Tap green — never red!',
-    defs: [{ isRed: false }, { isRed: true }],
-  },
-  3: {
-    headline: 'BE FAST',
-    sub: 'Watch the timer — one more tap!',
-    defs: [{ isRed: false }, { isRed: true }],
-  },
+const STEP_DEFS: Record<Step, { isRed: boolean }[]> = {
+  1: [{ isRed: false }],
+  2: [{ isRed: false }, { isRed: true }],
+  3: [{ isRed: false }, { isRed: true }],
 };
 
 const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
   const [step, setStep] = useState<Step>(1);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [wrongFlash, setWrongFlash] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(1); // only used in step 3
+  const [timeLeft, setTimeLeft] = useState(1);
   const [ripple, setRipple] = useState<{ x: number; y: number; green: boolean } | null>(null);
   const areaRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
   const startRef = useRef(Date.now());
 
-  // Track start once
   useEffect(() => {
     trackEvent('tutorial_start');
   }, []);
@@ -101,20 +86,16 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
         requestAnimationFrame(trySpawn);
         return;
       }
-      setCircles(placeCircles(w, h, STEP_CONFIG[s].defs));
+      setCircles(placeCircles(w, h, STEP_DEFS[s]));
     };
     requestAnimationFrame(trySpawn);
   }, []);
 
-  // Spawn circles whenever step changes
   useEffect(() => {
     spawn(step);
-    if (step === 3) {
-      startRef.current = Date.now();
-    }
+    if (step === 3) startRef.current = Date.now();
   }, [step, spawn]);
 
-  // Timer bar for step 3 only
   useEffect(() => {
     if (step !== 3) return;
     const DURATION = 3000;
@@ -125,19 +106,15 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
       if (remaining > 0) {
         timerRef.current = requestAnimationFrame(tick);
       } else {
-        // Time ran out — reset the timer to keep practising
         startRef.current = Date.now();
         setTimeLeft(1);
         timerRef.current = requestAnimationFrame(tick);
       }
     };
     timerRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (timerRef.current) cancelAnimationFrame(timerRef.current);
-    };
+    return () => { if (timerRef.current) cancelAnimationFrame(timerRef.current); };
   }, [step]);
 
-  // Resize / orientation
   useEffect(() => {
     const handler = () => spawn(step);
     window.addEventListener('resize', handler);
@@ -151,46 +128,45 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
   const handleTap = (circle: Circle, e: React.PointerEvent) => {
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-
-    setRipple({ x: cx, y: cy, green: !circle.isRed });
+    setRipple({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, green: !circle.isRed });
     setTimeout(() => setRipple(null), 400);
 
     if (circle.isRed) {
-      // Wrong — flash warning, no game over
       setWrongFlash(true);
       setTimeout(() => setWrongFlash(false), 600);
-      // Respawn to prevent repeated taps on same red
       requestAnimationFrame(() => spawn(step));
       return;
     }
 
-    // Green tapped → advance
     if (step < 3) {
       setStep((prev) => (prev + 1) as Step);
     } else {
-      // Tutorial complete
       markTutorialCompleted();
       trackEvent('tutorial_complete');
       onComplete();
     }
   };
 
-  const cfg = STEP_CONFIG[step];
-  const barColor =
-    timeLeft > 0.5 ? 'bg-neon-green' : timeLeft > 0.25 ? 'bg-neon-gold' : 'bg-neon-red';
+  const headlines: Record<Step, string> = {
+    1: t('tut_tap_green'),
+    2: t('tut_avoid_red'),
+    3: t('tut_be_fast'),
+  };
+  const subs: Record<Step, string> = {
+    1: t('tut_tap_green_sub'),
+    2: t('tut_avoid_red_sub'),
+    3: t('tut_be_fast_sub'),
+  };
+
+  const barColor = timeLeft > 0.5 ? 'bg-neon-green' : timeLeft > 0.25 ? 'bg-neon-gold' : 'bg-neon-red';
 
   return (
     <div className="flex flex-col h-[100dvh] w-full grid-bg animate-float-in">
-      {/* Wrong-tap flash overlay */}
       {wrongFlash && (
         <div className="fixed inset-0 bg-neon-red/20 pointer-events-none z-50 animate-pulse" />
       )}
 
-      {/* Header */}
       <div className="flex flex-col items-center px-4 pt-6 pb-3 gap-1">
-        {/* Step dots */}
         <div className="flex gap-2 mb-3">
           {([1, 2, 3] as Step[]).map((s) => (
             <div
@@ -207,20 +183,19 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
         </div>
 
         <p className="font-arcade text-lg neon-text-green text-center animate-pulse-neon">
-          {cfg.headline}
+          {headlines[step]}
         </p>
         <p className="font-orbitron text-xs text-muted-foreground text-center">
-          {cfg.sub}
+          {subs[step]}
         </p>
 
         {wrongFlash && (
           <p className="font-arcade text-[9px] neon-text-red animate-pulse mt-1">
-            ✕ WRONG — TAP GREEN!
+            {t('tut_wrong')}
           </p>
         )}
       </div>
 
-      {/* Timer bar — only step 3 */}
       {step === 3 && (
         <div className="mx-4 h-2 rounded-full bg-secondary overflow-hidden mb-1">
           <div
@@ -230,7 +205,6 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
         </div>
       )}
 
-      {/* Game area */}
       <div
         ref={areaRef}
         className="flex-1 relative mx-2 mb-4 overflow-hidden rounded-lg"
@@ -241,9 +215,7 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
             key={`${step}-${circle.id}`}
             onPointerDown={(e) => handleTap(circle, e)}
             className={`absolute rounded-full animate-pulse-neon active:scale-90 transition-transform ${
-              circle.isRed
-                ? 'bg-neon-red neon-glow-red'
-                : 'bg-neon-green neon-glow-green'
+              circle.isRed ? 'bg-neon-red neon-glow-red' : 'bg-neon-green neon-glow-green'
             }`}
             style={{
               width: CIRCLE_SIZE,
@@ -256,12 +228,9 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
           />
         ))}
 
-        {/* Ripple */}
         {ripple && (
           <div
-            className={`fixed pointer-events-none rounded-full ${
-              ripple.green ? 'bg-neon-green/30' : 'bg-neon-red/30'
-            }`}
+            className={`fixed pointer-events-none rounded-full ${ripple.green ? 'bg-neon-green/30' : 'bg-neon-red/30'}`}
             style={{
               left: ripple.x - 30,
               top: ripple.y - 30,
@@ -273,7 +242,6 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
         )}
       </div>
 
-      {/* Skip */}
       <button
         onPointerDown={() => {
           markTutorialCompleted();
@@ -282,7 +250,7 @@ const TutorialScreen: React.FC<Props> = ({ onComplete }) => {
         }}
         className="mx-auto mb-6 font-arcade text-[8px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
       >
-        SKIP TUTORIAL
+        {t('tut_skip')}
       </button>
     </div>
   );
