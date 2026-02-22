@@ -92,6 +92,12 @@ const pt = {
   ch_score: 'PONTUAÇÃO',
   ch_back: 'VOLTAR AOS DESAFIOS',
   ch_completed: '✓ CONCLUÍDO',
+  ch_beat_n_in_sec: 'Bata {n} em {sec}s',
+  ch_beat_n_in_sec_desc: 'Faça {n} pontos em {sec} segundos',
+  ch_speed_tap: 'Toque rápido ({sec}s)',
+  ch_speed_tap_desc: 'Maior pontuação em {sec} segundos',
+  ch_perfect_n: 'Perfeição: {n} acertos',
+  ch_perfect_n_desc: 'Faça {n} pontos sem erros',
 
   // Celebrations
   cel_entered: 'VOCÊ ENTROU NO',
