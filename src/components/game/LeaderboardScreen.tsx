@@ -17,6 +17,7 @@ import { trackLeaderboardOpen } from '@/lib/analytics';
 import { ArrowLeft, Globe, Loader2, Trophy, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { t } from '@/i18n';
+import { getDifficulty, ALL_DIFFICULTIES, type Difficulty } from '@/lib/difficulty';
 import AdBanner from './AdBanner';
 
 interface Props {
@@ -26,8 +27,16 @@ interface Props {
 
 type Tab = 'monthly' | 'alltime' | 'halloffame';
 
+const DIFF_I18N: Record<Difficulty, string> = {
+  easy: 'diff_easy',
+  normal: 'diff_normal',
+  hard: 'diff_hard',
+  insane: 'diff_insane',
+};
+
 const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
   const [tab, setTab] = useState<Tab>('monthly');
+  const [diff, setDiff] = useState<Difficulty>(getDifficulty);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerRank, setPlayerRank] = useState<number | null>(null);
@@ -38,17 +47,17 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
   const [seasonResults, setSeasonResults] = useState<SeasonResult[]>([]);
   const [loadingResults, setLoadingResults] = useState(false);
 
-  const loadData = useCallback(async (activeTab: Tab) => {
+  const loadData = useCallback(async (activeTab: Tab, activeDiff: Difficulty) => {
     if (activeTab === 'halloffame') return;
     setLoading(true);
     const data = activeTab === 'monthly'
-      ? await fetchMonthlyLeaderboard()
-      : await fetchAllTimeLeaderboard();
+      ? await fetchMonthlyLeaderboard(activeDiff)
+      : await fetchAllTimeLeaderboard(activeDiff);
     setEntries(data);
     if (highScore > 0) {
       const rank = activeTab === 'monthly'
-        ? await getPlayerRankMonthly(highScore)
-        : await getPlayerRankAllTime(highScore);
+        ? await getPlayerRankMonthly(highScore, activeDiff)
+        : await getPlayerRankAllTime(highScore, activeDiff);
       setPlayerRank(rank);
     }
     setLoading(false);
@@ -64,10 +73,10 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
   const loadSeasonDetail = useCallback(async (seasonId: string) => {
     setLoadingResults(true);
     setSelectedSeason(seasonId);
-    const data = await fetchSeasonResults(seasonId);
+    const data = await fetchSeasonResults(seasonId, diff);
     setSeasonResults(data);
     setLoadingResults(false);
-  }, []);
+  }, [diff]);
 
   useEffect(() => {
     playChampionMusic();
@@ -76,18 +85,18 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
       loadSeasons();
     } else {
       setSelectedSeason(null);
-      loadData(tab);
+      loadData(tab, diff);
     }
 
     if (tab !== 'halloffame') {
       const channel = supabase
         .channel('leaderboard-realtime')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: tab === 'monthly' ? 'season_scores' : 'leaderboard' }, () => { loadData(tab); })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'season_scores' }, () => { if (tab === 'monthly') loadData(tab); })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: tab === 'monthly' ? 'season_scores' : 'leaderboard' }, () => { loadData(tab, diff); })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'season_scores' }, () => { if (tab === 'monthly') loadData(tab, diff); })
         .subscribe();
       return () => { supabase.removeChannel(channel); };
     }
-  }, [tab, loadData, loadSeasons]);
+  }, [tab, diff, loadData, loadSeasons]);
 
   const isCurrentPlayerFirst = playerRank === 1 && tab === 'monthly';
 
@@ -134,7 +143,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
 
       {/* Tabs */}
       {!selectedSeason && (
-        <div className="flex gap-1 px-4 pb-3">
+        <div className="flex gap-1 px-4 pb-2">
           {(['monthly', 'alltime', 'halloffame'] as Tab[]).map((tb) => (
             <button
               key={tb}
@@ -148,6 +157,25 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
               }`}
             >
               {tabLabels[tb]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Difficulty filter */}
+      {!selectedSeason && (
+        <div className="flex gap-1 px-4 pb-3">
+          {ALL_DIFFICULTIES.map((d) => (
+            <button
+              key={d}
+              onClick={() => setDiff(d)}
+              className={`flex-1 py-1.5 rounded-md font-arcade text-[7px] border transition-all ${
+                diff === d
+                  ? 'border-neon-green/60 neon-text-green bg-secondary/60'
+                  : 'border-border/40 text-muted-foreground/60 hover:text-muted-foreground'
+              }`}
+            >
+              {t(DIFF_I18N[d] as any)}
             </button>
           ))}
         </div>

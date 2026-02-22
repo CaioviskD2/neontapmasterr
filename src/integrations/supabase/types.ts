@@ -19,6 +19,7 @@ export type Database = {
           country: string | null
           created_at: string
           device_id: string | null
+          difficulty: string
           id: string
           month: string
           nickname: string
@@ -28,6 +29,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           device_id?: string | null
+          difficulty?: string
           id?: string
           month?: string
           nickname: string
@@ -37,6 +39,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           device_id?: string | null
+          difficulty?: string
           id?: string
           month?: string
           nickname?: string
@@ -109,6 +112,7 @@ export type Database = {
       }
       season_results: {
         Row: {
+          difficulty: string
           id: string
           medal: string | null
           nickname: string
@@ -117,6 +121,7 @@ export type Database = {
           season_id: string
         }
         Insert: {
+          difficulty?: string
           id?: string
           medal?: string | null
           nickname: string
@@ -125,6 +130,7 @@ export type Database = {
           season_id: string
         }
         Update: {
+          difficulty?: string
           id?: string
           medal?: string | null
           nickname?: string
@@ -146,6 +152,7 @@ export type Database = {
         Row: {
           best_score: number
           device_id: string | null
+          difficulty: string
           id: string
           nickname: string
           season_id: string
@@ -154,6 +161,7 @@ export type Database = {
         Insert: {
           best_score: number
           device_id?: string | null
+          difficulty?: string
           id?: string
           nickname: string
           season_id: string
@@ -162,6 +170,7 @@ export type Database = {
         Update: {
           best_score?: number
           device_id?: string | null
+          difficulty?: string
           id?: string
           nickname?: string
           season_id?: string
@@ -211,10 +220,20 @@ export type Database = {
         Args: { p_device_id: string; p_nickname: string }
         Returns: Json
       }
-      upsert_season_score: {
-        Args: { p_nickname: string; p_score: number; p_season_id: string }
-        Returns: Json
-      }
+      upsert_season_score:
+        | {
+            Args: { p_nickname: string; p_score: number; p_season_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_difficulty?: string
+              p_nickname: string
+              p_score: number
+              p_season_id: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       [_ in never]: never

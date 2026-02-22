@@ -111,6 +111,13 @@ const en: Record<TranslationKey, string> = {
   intro_subtitle: 'Tap fast. Climb the rankings.',
   intro_start: 'TAP TO START',
 
+  // Difficulty
+  diff_title: 'DIFFICULTY',
+  diff_easy: 'EASY',
+  diff_normal: 'NORMAL',
+  diff_hard: 'HARD',
+  diff_insane: 'INSANE',
+
   // Splash
   splash_studio: 'Interactive Studios',
 };

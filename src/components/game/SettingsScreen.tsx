@@ -10,6 +10,7 @@ import {
 import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
 import { setMusicEnabled, playHomeMusic } from '@/lib/music';
 import { t, getLanguage, setLanguage, type Language } from '@/i18n';
+import { getDifficulty, setDifficulty, ALL_DIFFICULTIES, type Difficulty } from '@/lib/difficulty';
 
 interface Props {
   onBack: () => void;
@@ -26,9 +27,24 @@ const LANGUAGES: { id: Language; label: string }[] = [
   { id: 'en', label: 'English' },
 ];
 
+const DIFF_I18N: Record<Difficulty, string> = {
+  easy: 'diff_easy',
+  normal: 'diff_normal',
+  hard: 'diff_hard',
+  insane: 'diff_insane',
+};
+
+const DIFF_EMOJI: Record<Difficulty, string> = {
+  easy: '🟢',
+  normal: '🟡',
+  hard: '🔴',
+  insane: '💀',
+};
+
 const SettingsScreen: React.FC<Props> = ({ onBack }) => {
   const [settings, setSettings] = useState(getSettings);
   const [lang, setLang] = useState<Language>(getLanguage);
+  const [diff, setDiff] = useState<Difficulty>(getDifficulty);
   const [, forceUpdate] = useState(0);
 
   const updateSetting = <K extends keyof typeof settings>(
@@ -56,6 +72,11 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
     setLang(l);
     setLanguage(l);
     forceUpdate(n => n + 1);
+  };
+
+  const handleDifficulty = (d: Difficulty) => {
+    setDiff(d);
+    setDifficulty(d);
   };
 
   return (
@@ -95,6 +116,30 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
             checked={settings.vibrationOn}
             onCheckedChange={(v) => updateSetting('vibrationOn', v)}
           />
+        </div>
+
+        {/* Difficulty */}
+        <div className="px-4 py-4 rounded-lg bg-secondary/50 border border-border/50">
+          <p className="font-arcade text-[10px] text-foreground mb-4">{t('diff_title')}</p>
+          <div className="space-y-2">
+            {ALL_DIFFICULTIES.map((d) => (
+              <button
+                key={d}
+                onPointerDown={() => handleDifficulty(d)}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg border transition-all active:scale-[0.98] ${
+                  diff === d
+                    ? 'border-neon-blue bg-neon-blue/10'
+                    : 'border-border/40 hover:border-border'
+                }`}
+              >
+                <span className="text-xl">{DIFF_EMOJI[d]}</span>
+                <span className="font-arcade text-[9px] text-foreground">{t(DIFF_I18N[d] as any)}</span>
+                {diff === d && (
+                  <span className="ml-auto font-arcade text-[7px] neon-text-blue">{t('settings_active')}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Theme */}

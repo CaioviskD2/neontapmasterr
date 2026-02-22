@@ -48,11 +48,11 @@ export const trackEvent = (name: string, params?: AnalyticsParams): void => {
 export const trackSessionStart = () =>
   trackEvent('session_start');
 
-export const trackPlayStart = () =>
-  trackEvent('play_start');
+export const trackPlayStart = (difficulty?: string) =>
+  trackEvent('play_start', { difficulty: difficulty ?? 'normal' });
 
-export const trackGameOver = (score: number) =>
-  trackEvent('game_over', { score });
+export const trackGameOver = (score: number, difficulty?: string) =>
+  trackEvent('game_over', { score, difficulty: difficulty ?? 'normal' });
 
 export const trackNewHighScore = (score: number) =>
   trackEvent('new_high_score', { score });

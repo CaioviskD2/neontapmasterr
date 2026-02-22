@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { playTapSound, playGameOverSound } from '@/lib/sounds';
 import { playGameMusic, stopMusic } from '@/lib/music';
 import { trackPlayStart, trackGameOver } from '@/lib/analytics';
+import { getDifficulty, getMaxTimeForScore, getCircleCountForScore, type Difficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
 
 interface Circle {
@@ -12,13 +13,9 @@ interface Circle {
 }
 
 export interface GameConfig {
-  /** Max game time in ms (0 = use normal per-round timer) */
   totalTimeMs?: number;
-  /** Target score to win (0 = no target) */
   targetScore?: number;
-  /** Disable continue/rewarded */
   disableContinue?: boolean;
-  /** Callback when challenge objective is met */
   onChallengeComplete?: (score: number) => void;
 }
 
@@ -27,16 +24,14 @@ interface Props {
   initialScore?: number;
   invulnerableStart?: boolean;
   config?: GameConfig;
+  difficulty?: Difficulty;
 }
 
 const CIRCLE_SIZE = 64;
-// Normal mode constants
-const INITIAL_TIME = 2000;
-const MIN_TIME = 800;
 // Hardcore (challenge) mode constants
 const HC_INITIAL_TIME = 1600;
 const HC_MIN_TIME = 650;
-const HC_TIME_REDUCTION = 45; // ms per point
+const HC_TIME_REDUCTION = 45;
 const MIN_AREA = 200;
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
@@ -53,15 +48,12 @@ const generateCircles = (count: number, areaW: number, areaH: number, allGreen =
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const x = clamp(padding + Math.random() * (maxX - padding), padding, maxX);
       const y = clamp(padding + Math.random() * (maxY - padding), padding, maxY);
-
       if (isNaN(x) || isNaN(y)) continue;
-
       const overlaps = circles.some(c => {
         const dx = c.x - x;
         const dy = c.y - y;
         return Math.sqrt(dx * dx + dy * dy) < CIRCLE_SIZE + 12;
       });
-
       if (!overlaps) {
         circles.push({ id: i, x, y, isRed: allGreen ? false : i === count - 1 });
         placed = true;
@@ -88,20 +80,27 @@ const generateCircles = (count: number, areaW: number, areaH: number, allGreen =
   return circles;
 };
 
-const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableStart, config }) => {
+const DIFF_LABEL: Record<Difficulty, string> = {
+  easy: 'diff_easy',
+  normal: 'diff_normal',
+  hard: 'diff_hard',
+  insane: 'diff_insane',
+};
+
+const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableStart, config, difficulty }) => {
   const startScore = initialScore ?? 0;
+  const diff = difficulty ?? getDifficulty();
   const isHardcore = !!(config && (config.totalTimeMs || config.targetScore || config.disableContinue));
   const [score, setScore] = useState(startScore);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [timeLeft, setTimeLeft] = useState(1);
   const [maxTime, setMaxTime] = useState(() => {
     if (isHardcore) return Math.max(HC_MIN_TIME, HC_INITIAL_TIME - startScore * HC_TIME_REDUCTION);
-    return Math.max(MIN_TIME, INITIAL_TIME - startScore * 30);
+    return getMaxTimeForScore(startScore, diff);
   });
   const [ripple, setRipple] = useState<{ x: number; y: number; green: boolean } | null>(null);
   const [invulnerable, setInvulnerable] = useState(!!invulnerableStart);
 
-  // Challenge timer state
   const [challengeTimeLeft, setChallengeTimeLeft] = useState(config?.totalTimeMs ?? 0);
   const challengeStartRef = useRef(Date.now());
 
@@ -115,14 +114,14 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   const hasChallengeTimer = !!(config?.totalTimeMs && config.totalTimeMs > 0);
 
   const getCircleCount = useCallback((s: number) => {
-    // Hardcore: +1 circle every 3 pts; Normal: every 5 pts
-    return 3 + Math.floor(s / (isHardcore ? 3 : 5));
-  }, [isHardcore]);
+    if (isHardcore) return 3 + Math.floor(s / 3);
+    return getCircleCountForScore(s, diff);
+  }, [isHardcore, diff]);
 
-  const getMaxTime = useCallback((s: number) => {
+  const getMaxTimeCalc = useCallback((s: number) => {
     if (isHardcore) return Math.max(HC_MIN_TIME, HC_INITIAL_TIME - s * HC_TIME_REDUCTION);
-    return Math.max(MIN_TIME, INITIAL_TIME - s * 30);
-  }, [isHardcore]);
+    return getMaxTimeForScore(s, diff);
+  }, [isHardcore, diff]);
 
   const spawnCircles = useCallback((s: number, allGreen = false) => {
     const trySpawn = () => {
@@ -139,7 +138,6 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
     trySpawn();
   }, [getCircleCount]);
 
-  // Re-spawn on resize/orientation change
   useEffect(() => {
     const handleResize = () => {
       if (gameOverRef.current) return;
@@ -153,10 +151,9 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
     };
   }, [spawnCircles, invulnerable]);
 
-  // Init
   useEffect(() => {
     playGameMusic();
-    if (!initialScore) trackPlayStart();
+    if (!initialScore) trackPlayStart(diff);
 
     if (hasChallengeTimer) {
       challengeStartRef.current = Date.now();
@@ -176,64 +173,54 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
     }
   }, [spawnCircles]);
 
-  // Per-round timer loop (rAF + performance.now)
   useEffect(() => {
     startTimeRef.current = Date.now();
-
     const tick = () => {
       if (gameOverRef.current) return;
       const elapsed = Date.now() - startTimeRef.current;
       const remaining = 1 - elapsed / maxTime;
       if (remaining <= 0) {
-        // In challenge mode with totalTime, round timeout = game over too
         gameOverRef.current = true;
         playGameOverSound();
         stopMusic();
         vibrate();
-        trackGameOver(scoreRef.current);
+        trackGameOver(scoreRef.current, diff);
         onGameOver(scoreRef.current);
         return;
       }
       setTimeLeft(remaining);
       timerRef.current = requestAnimationFrame(tick);
     };
-
     timerRef.current = requestAnimationFrame(tick);
     return () => {
       if (timerRef.current) cancelAnimationFrame(timerRef.current);
     };
   }, [maxTime, score, onGameOver]);
 
-  // Challenge global timer (rAF)
   useEffect(() => {
     if (!hasChallengeTimer) return;
-
     const tick = () => {
       if (gameOverRef.current) return;
       const elapsed = Date.now() - challengeStartRef.current;
       const remaining = config!.totalTimeMs! - elapsed;
       setChallengeTimeLeft(Math.max(0, remaining));
-
       if (remaining <= 0) {
-        // Time's up — check if target was met
         gameOverRef.current = true;
         stopMusic();
         if (config?.targetScore && scoreRef.current >= config.targetScore) {
           config.onChallengeComplete?.(scoreRef.current);
         } else if (!config?.targetScore) {
-          // Speed mode: complete with whatever score
           config?.onChallengeComplete?.(scoreRef.current);
         } else {
           playGameOverSound();
           vibrate();
-          trackGameOver(scoreRef.current);
+          trackGameOver(scoreRef.current, diff);
           onGameOver(scoreRef.current);
         }
         return;
       }
       challengeTimerRef.current = requestAnimationFrame(tick);
     };
-
     challengeTimerRef.current = requestAnimationFrame(tick);
     return () => {
       if (challengeTimerRef.current) cancelAnimationFrame(challengeTimerRef.current);
@@ -244,7 +231,6 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
     if (navigator.vibrate) navigator.vibrate(100);
   };
 
-  // Check challenge target on score change
   useEffect(() => {
     if (config?.targetScore && score >= config.targetScore && !gameOverRef.current) {
       gameOverRef.current = true;
@@ -256,7 +242,6 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   const handleTap = (circle: Circle, e: React.PointerEvent) => {
     if (gameOverRef.current) return;
     e.preventDefault();
-
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setRipple({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, green: !circle.isRed });
     setTimeout(() => setRipple(null), 400);
@@ -267,18 +252,17 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
       playGameOverSound();
       stopMusic();
       vibrate();
-      trackGameOver(scoreRef.current);
+      trackGameOver(scoreRef.current, diff);
       onGameOver(scoreRef.current);
     } else {
       playTapSound();
       const newScore = scoreRef.current + 1;
       scoreRef.current = newScore;
       setScore(newScore);
-      const newMax = getMaxTime(newScore);
+      const newMax = getMaxTimeCalc(newScore);
       setMaxTime(newMax);
       startTimeRef.current = Date.now();
       setTimeLeft(1);
-      // Use rAF to defer reposition so hit is confirmed first
       requestAnimationFrame(() => {
         spawnCircles(newScore, invulnerable);
       });
@@ -304,6 +288,11 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
           )}
         </div>
         <div className="flex items-center gap-3">
+          {!isHardcore && (
+            <span className="font-arcade text-[7px] text-muted-foreground/60 uppercase">
+              {t(DIFF_LABEL[diff] as any)}
+            </span>
+          )}
           {hasChallengeTimer && (
             <span className="font-arcade text-[10px] neon-text-gold">
               ⏱ {formatChallengeTime(challengeTimeLeft)}
@@ -350,7 +339,6 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
           />
         ))}
 
-        {/* Ripple effect */}
         {ripple && (
           <div
             className={`fixed pointer-events-none rounded-full ${ripple.green ? 'bg-neon-green/30' : 'bg-neon-red/30'}`}
