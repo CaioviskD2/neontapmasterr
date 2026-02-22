@@ -94,6 +94,12 @@ const en: Record<TranslationKey, string> = {
   ch_score: 'SCORE',
   ch_back: 'BACK TO CHALLENGES',
   ch_completed: '✓ COMPLETED',
+  ch_beat_n_in_sec: 'Beat {n} in {sec}s',
+  ch_beat_n_in_sec_desc: 'Score {n} points within {sec} seconds',
+  ch_speed_tap: 'Speed Tap ({sec}s)',
+  ch_speed_tap_desc: 'Get the highest score in {sec} seconds',
+  ch_perfect_n: 'Perfect: {n} hits',
+  ch_perfect_n_desc: 'Score {n} points without any mistakes',
 
   // Celebrations
   cel_entered: 'YOU ENTERED',

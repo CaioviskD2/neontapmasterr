@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, CheckCircle, Zap, Target, Trophy } from 'lucide-react';
-import { CHALLENGES, isChallengeCompleted, markChallengeCompleted, type ChallengeDefinition } from '@/lib/challenges';
+import { CHALLENGES, isChallengeCompleted, markChallengeCompleted, getChallengeTitle, getChallengeDesc, type ChallengeDefinition } from '@/lib/challenges';
 import { trackEvent } from '@/lib/analytics';
 import { t } from '@/i18n';
 import GameScreen, { type GameConfig } from './GameScreen';
@@ -107,11 +107,11 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {ICONS[c.id]}
-                  <span className="font-arcade text-[10px] text-foreground">{c.title}</span>
+                  <span className="font-arcade text-[10px] text-foreground">{getChallengeTitle(c)}</span>
                 </div>
                 {completed && <CheckCircle className="w-4 h-4 text-neon-green" />}
               </div>
-              <p className="font-orbitron text-xs text-muted-foreground">{c.description}</p>
+              <p className="font-orbitron text-xs text-muted-foreground">{getChallengeDesc(c)}</p>
               {completed && (
                 <p className="font-arcade text-[7px] neon-text-green mt-2">{t('ch_completed')}</p>
               )}
