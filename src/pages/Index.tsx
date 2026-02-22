@@ -11,6 +11,7 @@ import ChallengesScreen from '@/components/game/ChallengesScreen';
 import SettingsScreen from '@/components/game/SettingsScreen';
 import { getSettings, applyTheme } from '@/lib/settings';
 import { isTutorialCompleted, markFirstGameStart, checkQuickDeath } from '@/lib/tutorial';
+import { getDifficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
 
 type AppPhase = 'splash' | 'intro' | 'tutorial' | 'main';
@@ -87,6 +88,7 @@ const Index = () => {
           onGameOver={handleGameOver}
           initialScore={continueUsedThisRun ? lastScore : undefined}
           invulnerableStart={continueUsedThisRun}
+          difficulty={getDifficulty()}
           key={continueUsedThisRun ? `continue-${lastScore}` : `new-${Date.now()}`}
         />
       )}

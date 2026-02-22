@@ -109,6 +109,13 @@ const pt = {
   intro_subtitle: 'Toque rápido. Suba no ranking.',
   intro_start: 'TOQUE PARA INICIAR',
 
+  // Difficulty
+  diff_title: 'DIFICULDADE',
+  diff_easy: 'FÁCIL',
+  diff_normal: 'NORMAL',
+  diff_hard: 'DIFÍCIL',
+  diff_insane: 'INSANO',
+
   // Splash
   splash_studio: 'Interactive Studios',
 } as const;

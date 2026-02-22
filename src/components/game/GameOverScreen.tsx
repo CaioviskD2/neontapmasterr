@@ -7,6 +7,7 @@ import { incrementGamesPlayed, showInterstitialAd, showRewardedAd } from '@/lib/
 import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1 } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
+import { getDifficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
@@ -64,7 +65,8 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
 
   const handleAutoSave = async (name: string) => {
     setSaving(true);
-    const success = await submitScore(name, score);
+    const diff = getDifficulty();
+    const success = await submitScore(name, score, diff);
     setSaving(false);
     if (success) {
       setSaved(true);
@@ -73,9 +75,10 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   };
 
   const checkRankAndCelebrate = async (playerScore: number) => {
+    const diff = getDifficulty();
     const [monthlyRank, allTimeRank] = await Promise.all([
-      getPlayerRankMonthly(playerScore),
-      getPlayerRankAllTime(playerScore),
+      getPlayerRankMonthly(playerScore, diff),
+      getPlayerRankAllTime(playerScore, diff),
     ]);
     if (monthlyRank > 0) {
       const result = updateMedals(monthlyRank, allTimeRank > 0 ? allTimeRank : monthlyRank);
@@ -115,7 +118,8 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       return;
     }
 
-    const success = await submitScore(trimmed, score);
+    const diff = getDifficulty();
+    const success = await submitScore(trimmed, score, diff);
     setSaving(false);
     if (success) {
       setSaved(true);
