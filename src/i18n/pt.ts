@@ -118,6 +118,43 @@ const pt = {
 
   // Splash
   splash_studio: 'Interactive Studios',
+
+  // Streak
+  streak_current: 'STREAK ATUAL',
+  streak_best: 'MELHOR STREAK',
+  streak_days: 'DIAS',
+
+  // Badges
+  badges_title: 'CONQUISTAS',
+  badges_locked: '🔒 BLOQUEADA',
+  badge_unlocked_title: 'CONQUISTA DESBLOQUEADA!',
+  badge_score_50: 'ATIRADOR',
+  badge_score_50_desc: 'Atingir 50 pontos',
+  badge_score_100: 'CENTURIÃO',
+  badge_score_100_desc: 'Atingir 100 pontos',
+  badge_insane_20: 'INSANO DE VERDADE',
+  badge_insane_20_desc: '20 pontos no Insano',
+  badge_streak_3: 'DEDICADO',
+  badge_streak_3_desc: 'Streak de 3 dias',
+  badge_streak_7: 'INCANSÁVEL',
+  badge_streak_7_desc: 'Streak de 7 dias',
+  badge_monthly_top10: 'ELITE',
+  badge_monthly_top10_desc: 'Top 10 mensal',
+  badge_challenge_master: 'MESTRE DOS DESAFIOS',
+  badge_challenge_master_desc: 'Completar todos os desafios',
+
+  // Skins
+  skins_title: 'SKINS',
+  skin_default: 'PADRÃO',
+  skin_default_unlock: 'Desbloqueada',
+  skin_neon_blue: 'NEON AZUL',
+  skin_neon_blue_unlock: 'Streak de 7 dias',
+  skin_cyber_purple: 'CYBER ROXO',
+  skin_cyber_purple_unlock: 'Streak de 14 dias',
+  skin_crown_gold: 'COROA DOURADA',
+  skin_crown_gold_unlock: 'Top 10 mensal',
+  skin_locked: '🔒 BLOQUEADA',
+  skin_equipped: '✓ EQUIPADA',
 } as const;
 
 export default pt;
