@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { playTapSound, playGameOverSound } from '@/lib/sounds';
 import { playGameMusic, stopMusic } from '@/lib/music';
-import { trackPlayStart, trackGameOver } from '@/lib/analytics';
+import { trackPlayStart, trackGameOver, trackEvent } from '@/lib/analytics';
 import { getDifficulty, getMaxTimeForScore, getCircleCountForScore, type Difficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
 
@@ -27,21 +27,28 @@ interface Props {
   difficulty?: Difficulty;
 }
 
-const CIRCLE_SIZE = 64;
+const DEFAULT_CIRCLE_SIZE = 64;
+const INSANE_SIZES = [44, 56, 68, 80];
 // Hardcore (challenge) mode constants
 const HC_INITIAL_TIME = 1600;
 const HC_MIN_TIME = 650;
 const HC_TIME_REDUCTION = 45;
 const MIN_AREA = 200;
 
+const pickNextSize = (lastSize: number): number => {
+  const options = INSANE_SIZES.filter(s => s !== lastSize);
+  return options[Math.floor(Math.random() * options.length)];
+};
+
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-const generateCircles = (count: number, areaW: number, areaH: number, allGreen = false): Circle[] => {
+const generateCircles = (count: number, areaW: number, areaH: number, allGreen = false, circleSize = DEFAULT_CIRCLE_SIZE): Circle[] => {
   const circles: Circle[] = [];
   const padding = 10;
   const maxAttempts = 100;
-  const maxX = Math.max(padding, areaW - CIRCLE_SIZE - padding);
-  const maxY = Math.max(padding, areaH - CIRCLE_SIZE - padding);
+  const maxX = Math.max(padding, areaW - circleSize - padding);
+  const maxY = Math.max(padding, areaH - circleSize - padding);
+  const minDist = circleSize + 12;
 
   for (let i = 0; i < count; i++) {
     let placed = false;
@@ -52,7 +59,7 @@ const generateCircles = (count: number, areaW: number, areaH: number, allGreen =
       const overlaps = circles.some(c => {
         const dx = c.x - x;
         const dy = c.y - y;
-        return Math.sqrt(dx * dx + dy * dy) < CIRCLE_SIZE + 12;
+        return Math.sqrt(dx * dx + dy * dy) < minDist;
       });
       if (!overlaps) {
         circles.push({ id: i, x, y, isRed: allGreen ? false : i === count - 1 });
@@ -91,7 +98,10 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   const startScore = initialScore ?? 0;
   const diff = difficulty ?? getDifficulty();
   const isHardcore = !!(config && (config.totalTimeMs || config.targetScore || config.disableContinue));
+  const isInsane = diff === 'insane' && !isHardcore;
   const [score, setScore] = useState(startScore);
+  const [circleSize, setCircleSize] = useState(() => isInsane ? INSANE_SIZES[Math.floor(Math.random() * INSANE_SIZES.length)] : DEFAULT_CIRCLE_SIZE);
+  const circleSizeRef = useRef(isInsane ? INSANE_SIZES[Math.floor(Math.random() * INSANE_SIZES.length)] : DEFAULT_CIRCLE_SIZE);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [timeLeft, setTimeLeft] = useState(1);
   const [maxTime, setMaxTime] = useState(() => {
@@ -123,7 +133,8 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
     return getMaxTimeForScore(s, diff);
   }, [isHardcore, diff]);
 
-  const spawnCircles = useCallback((s: number, allGreen = false) => {
+  const spawnCircles = useCallback((s: number, allGreen = false, size?: number) => {
+    const useSize = size ?? circleSizeRef.current;
     const trySpawn = () => {
       if (!areaRef.current) return;
       const w = areaRef.current.clientWidth;
@@ -133,7 +144,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
         return;
       }
       const count = getCircleCount(s);
-      setCircles(generateCircles(count, w, h, allGreen));
+      setCircles(generateCircles(count, w, h, allGreen, useSize));
     };
     trySpawn();
   }, [getCircleCount]);
@@ -263,8 +274,17 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
       setMaxTime(newMax);
       startTimeRef.current = Date.now();
       setTimeLeft(1);
+
+      let nextSize = circleSizeRef.current;
+      if (isInsane) {
+        nextSize = pickNextSize(circleSizeRef.current);
+        trackEvent('insane_size_change', { from: circleSizeRef.current, to: nextSize });
+        circleSizeRef.current = nextSize;
+        setCircleSize(nextSize);
+      }
+
       requestAnimationFrame(() => {
-        spawnCircles(newScore, invulnerable);
+        spawnCircles(newScore, invulnerable, nextSize);
       });
     }
   };
@@ -329,8 +349,8 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
                 : 'bg-neon-green neon-glow-green'
             }`}
             style={{
-              width: CIRCLE_SIZE,
-              height: CIRCLE_SIZE,
+              width: circleSize,
+              height: circleSize,
               transform: `translate3d(${circle.x}px, ${circle.y}px, 0)`,
               willChange: 'transform',
               left: 0,
