@@ -120,6 +120,43 @@ const en: Record<TranslationKey, string> = {
 
   // Splash
   splash_studio: 'Interactive Studios',
+
+  // Streak
+  streak_current: 'CURRENT STREAK',
+  streak_best: 'BEST STREAK',
+  streak_days: 'DAYS',
+
+  // Badges
+  badges_title: 'ACHIEVEMENTS',
+  badges_locked: '🔒 LOCKED',
+  badge_unlocked_title: 'BADGE UNLOCKED!',
+  badge_score_50: 'SHARPSHOOTER',
+  badge_score_50_desc: 'Score 50 points',
+  badge_score_100: 'CENTURION',
+  badge_score_100_desc: 'Score 100 points',
+  badge_insane_20: 'TRULY INSANE',
+  badge_insane_20_desc: '20 points on Insane',
+  badge_streak_3: 'DEDICATED',
+  badge_streak_3_desc: '3-day streak',
+  badge_streak_7: 'UNSTOPPABLE',
+  badge_streak_7_desc: '7-day streak',
+  badge_monthly_top10: 'ELITE',
+  badge_monthly_top10_desc: 'Monthly Top 10',
+  badge_challenge_master: 'CHALLENGE MASTER',
+  badge_challenge_master_desc: 'Complete all challenges',
+
+  // Skins
+  skins_title: 'SKINS',
+  skin_default: 'DEFAULT',
+  skin_default_unlock: 'Unlocked',
+  skin_neon_blue: 'NEON BLUE',
+  skin_neon_blue_unlock: '7-day streak',
+  skin_cyber_purple: 'CYBER PURPLE',
+  skin_cyber_purple_unlock: '14-day streak',
+  skin_crown_gold: 'GOLDEN CROWN',
+  skin_crown_gold_unlock: 'Monthly Top 10',
+  skin_locked: '🔒 LOCKED',
+  skin_equipped: '✓ EQUIPPED',
 };
 
 export default en;

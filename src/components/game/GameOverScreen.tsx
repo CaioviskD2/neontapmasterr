@@ -9,8 +9,11 @@ import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medal
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
 import { getDifficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
+import { updateStreak } from '@/lib/streaks';
+import { checkAndUnlockBadges } from '@/lib/badges';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
+import BadgeUnlockedOverlay from './BadgeUnlockedOverlay';
 import { Loader2 } from 'lucide-react';
 
 interface Props {
@@ -34,12 +37,14 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   const [nicknameError, setNicknameError] = useState('');
   const [loadingRewarded, setLoadingRewarded] = useState(false);
   const [continueUsed, setContinueUsed] = useState(false);
-
+  const [newBadges, setNewBadges] = useState<string[]>([]);
+  const [showBadgeOverlay, setShowBadgeOverlay] = useState(false);
   const existingNickname = getNickname();
 
   useEffect(() => {
     stopMusic();
     incrementGamesPlayed();
+    updateStreak();
     const prev = getHighScore();
     setHigh(prev);
 
@@ -84,6 +89,13 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       const result = updateMedals(monthlyRank, allTimeRank > 0 ? allTimeRank : monthlyRank);
       if (result.newMedal) setMedalResult(result);
     }
+
+    // Check badges
+    const badges = checkAndUnlockBadges(playerScore, monthlyRank);
+    if (badges.length > 0) {
+      setNewBadges(badges);
+    }
+
     if (monthlyRank === 1) {
       playWorldNumberOneSound();
       setShowWorldOne(true);
@@ -92,6 +104,9 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       playTop10Sound();
       setShowTop10(true);
       trackEnteredTop10(monthlyRank, playerScore);
+    } else if (badges.length > 0) {
+      // Show badge overlay only if no celebration is shown
+      setShowBadgeOverlay(true);
     }
   };
 
@@ -132,6 +147,9 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     <>
     {showWorldOne && <WorldNumberOneCelebration onComplete={onLeaderboard} />}
     {showTop10 && !showWorldOne && <Top10Celebration onComplete={onLeaderboard} />}
+    {showBadgeOverlay && newBadges.length > 0 && !showWorldOne && !showTop10 && (
+      <BadgeUnlockedOverlay badgeIds={newBadges} onComplete={() => setShowBadgeOverlay(false)} />
+    )}
     <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 grid-bg animate-float-in">
       <h1 className="font-arcade text-2xl sm:text-3xl neon-text-red animate-glitch mb-6">
         {t('gameover_title')}

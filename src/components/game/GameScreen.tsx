@@ -4,6 +4,7 @@ import { playGameMusic, stopMusic } from '@/lib/music';
 import { trackPlayStart, trackGameOver, trackEvent } from '@/lib/analytics';
 import { getDifficulty, getMaxTimeForScore, getCircleCountForScore, type Difficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
+import { getActiveSkin } from '@/lib/skins';
 
 interface Circle {
   id: number;
@@ -99,6 +100,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   const diff = difficulty ?? getDifficulty();
   const isHardcore = !!(config && (config.totalTimeMs || config.targetScore || config.disableContinue));
   const isInsane = diff === 'insane' && !isHardcore;
+  const skin = getActiveSkin();
   const [score, setScore] = useState(startScore);
   const [circleSize, setCircleSize] = useState(() => isInsane ? INSANE_SIZES[Math.floor(Math.random() * INSANE_SIZES.length)] : DEFAULT_CIRCLE_SIZE);
   const circleSizeRef = useRef(isInsane ? INSANE_SIZES[Math.floor(Math.random() * INSANE_SIZES.length)] : DEFAULT_CIRCLE_SIZE);
@@ -339,25 +341,36 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
         className="flex-1 relative mx-2 mb-2 overflow-hidden rounded-lg"
         style={{ touchAction: 'none', minHeight: 0 }}
       >
-        {circles.map(circle => (
-          <button
-            key={circle.id}
-            onPointerDown={(e) => handleTap(circle, e)}
-            className={`absolute rounded-full transition-transform active:scale-90 animate-pulse-neon ${
-              circle.isRed
-                ? 'bg-neon-red neon-glow-red'
-                : 'bg-neon-green neon-glow-green'
-            }`}
-            style={{
-              width: circleSize,
-              height: circleSize,
-              transform: `translate3d(${circle.x}px, ${circle.y}px, 0)`,
-              willChange: 'transform',
-              left: 0,
-              top: 0,
-            }}
-          />
-        ))}
+        {circles.map(circle => {
+          const hasSkin = skin.id !== 'default';
+          const bgColor = circle.isRed
+            ? (hasSkin && skin.redColor ? `hsl(${skin.redColor})` : undefined)
+            : (hasSkin && skin.greenColor ? `hsl(${skin.greenColor})` : undefined);
+          const glowHsl = circle.isRed ? skin.redColor : (skin.glowColor || skin.greenColor);
+          const glowStyle = hasSkin && glowHsl
+            ? { boxShadow: `0 0 10px hsl(${glowHsl} / 0.5), 0 0 30px hsl(${glowHsl} / 0.3)` }
+            : {};
+
+          return (
+            <button
+              key={circle.id}
+              onPointerDown={(e) => handleTap(circle, e)}
+              className={`absolute rounded-full transition-transform active:scale-90 animate-pulse-neon ${
+                !hasSkin ? (circle.isRed ? 'bg-neon-red neon-glow-red' : 'bg-neon-green neon-glow-green') : ''
+              }`}
+              style={{
+                width: circleSize,
+                height: circleSize,
+                transform: `translate3d(${circle.x}px, ${circle.y}px, 0)`,
+                willChange: 'transform',
+                left: 0,
+                top: 0,
+                ...(bgColor ? { backgroundColor: bgColor } : {}),
+                ...glowStyle,
+              }}
+            />
+          );
+        })}
 
         {ripple && (
           <div

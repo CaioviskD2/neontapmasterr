@@ -11,6 +11,7 @@ import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
 import { setMusicEnabled, playHomeMusic } from '@/lib/music';
 import { t, getLanguage, setLanguage, type Language } from '@/i18n';
 import { getDifficulty, setDifficulty, ALL_DIFFICULTIES, type Difficulty } from '@/lib/difficulty';
+import { SKINS, getSelectedSkin, setSelectedSkin } from '@/lib/skins';
 
 interface Props {
   onBack: () => void;
@@ -45,6 +46,7 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
   const [settings, setSettings] = useState(getSettings);
   const [lang, setLang] = useState<Language>(getLanguage);
   const [diff, setDiff] = useState<Difficulty>(getDifficulty);
+  const [activeSkin, setActiveSkin] = useState(getSelectedSkin);
   const [, forceUpdate] = useState(0);
 
   const updateSetting = <K extends keyof typeof settings>(
@@ -187,6 +189,53 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
                 )}
               </button>
             ))}
+          </div>
+        </div>
+        {/* Skins */}
+        <div className="px-4 py-4 rounded-lg bg-secondary/50 border border-border/50">
+          <p className="font-arcade text-[10px] text-foreground mb-4">{t('skins_title')}</p>
+          <div className="space-y-2">
+            {SKINS.map((skin) => {
+              const unlocked = skin.isUnlocked();
+              return (
+                <button
+                  key={skin.id}
+                  onPointerDown={() => {
+                    if (unlocked) {
+                      setActiveSkin(skin.id);
+                      setSelectedSkin(skin.id);
+                    }
+                  }}
+                  disabled={!unlocked}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg border transition-all active:scale-[0.98] ${
+                    activeSkin === skin.id && unlocked
+                      ? 'border-neon-blue bg-neon-blue/10'
+                      : unlocked
+                        ? 'border-border/40 hover:border-border'
+                        : 'border-border/20 opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  {skin.greenColor ? (
+                    <span
+                      className="w-5 h-5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: `hsl(${skin.greenColor})` }}
+                    />
+                  ) : (
+                    <span className="w-5 h-5 rounded-full bg-neon-green flex-shrink-0" />
+                  )}
+                  <span className="font-arcade text-[9px] text-foreground">{t(skin.nameKey as any)}</span>
+                  {!unlocked && (
+                    <span className="ml-auto font-arcade text-[7px] text-muted-foreground">{t('skin_locked')}</span>
+                  )}
+                  {unlocked && activeSkin === skin.id && (
+                    <span className="ml-auto font-arcade text-[7px] neon-text-blue">{t('skin_equipped')}</span>
+                  )}
+                  {unlocked && activeSkin !== skin.id && (
+                    <span className="ml-auto font-orbitron text-[9px] text-muted-foreground">{t(skin.unlockKey as any)}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
