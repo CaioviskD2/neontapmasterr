@@ -1,5 +1,6 @@
 import React from 'react';
 import { getHighScore } from '@/lib/storage';
+import { getDifficulty } from '@/lib/difficulty';
 import { markUserInteracted, playHomeMusic } from '@/lib/music';
 import { getMedals, getTotalMedals } from '@/lib/medals';
 import { Settings } from 'lucide-react';
@@ -15,7 +16,7 @@ interface Props {
 }
 
 const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChallenges, onSettings }) => {
-  const highScore = getHighScore();
+  const highScore = getHighScore(getDifficulty());
   const medals = getMedals();
   const hasMedals = getTotalMedals(medals) > 0 || medals.monthlyChampionCount > 0 || medals.top10EntryCount > 0;
 

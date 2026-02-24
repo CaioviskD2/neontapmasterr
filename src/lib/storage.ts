@@ -1,14 +1,21 @@
+import { getDifficulty, type Difficulty } from '@/lib/difficulty';
+
 const KEYS = {
   HIGH_SCORE: 'owt_high_score',
   GAMES_PLAYED: 'owt_games_played',
 } as const;
 
-export const getHighScore = (): number => {
-  return parseInt(localStorage.getItem(KEYS.HIGH_SCORE) || '0', 10);
+const highScoreKey = (d?: Difficulty): string => {
+  const diff = d ?? getDifficulty();
+  return `${KEYS.HIGH_SCORE}_${diff}`;
 };
 
-export const setHighScore = (score: number) => {
-  localStorage.setItem(KEYS.HIGH_SCORE, String(score));
+export const getHighScore = (d?: Difficulty): number => {
+  return parseInt(localStorage.getItem(highScoreKey(d)) || '0', 10);
+};
+
+export const setHighScore = (score: number, d?: Difficulty) => {
+  localStorage.setItem(highScoreKey(d), String(score));
 };
 
 export interface LeaderboardEntry {

@@ -60,8 +60,11 @@ export const trackNewHighScore = (score: number) =>
 export const trackLeaderboardOpen = (tab?: string) =>
   trackEvent('leaderboard_open', { tab: tab ?? 'monthly' });
 
-export const trackRankSubmitted = (nickname: string, score: number) =>
-  trackEvent('rank_submitted', { nickname, score });
+export const trackRankSubmitted = (nickname: string, score: number, difficulty?: string) =>
+  trackEvent('rank_submitted', { nickname, score, difficulty: difficulty ?? 'normal' });
+
+export const trackLeaderboardSubmit = (difficulty: string, score: number) =>
+  trackEvent('leaderboard_submit', { difficulty, score });
 
 export const trackEnteredTop10 = (rank: number, score: number) =>
   trackEvent('entered_top10', { rank, score });

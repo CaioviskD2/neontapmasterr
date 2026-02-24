@@ -40,7 +40,6 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [playerRank, setPlayerRank] = useState<number | null>(null);
-  const highScore = getHighScore();
 
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
@@ -54,14 +53,17 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
       ? await fetchMonthlyLeaderboard(activeDiff)
       : await fetchAllTimeLeaderboard(activeDiff);
     setEntries(data);
-    if (highScore > 0) {
+    const hs = getHighScore(activeDiff);
+    if (hs > 0) {
       const rank = activeTab === 'monthly'
-        ? await getPlayerRankMonthly(highScore, activeDiff)
-        : await getPlayerRankAllTime(highScore, activeDiff);
+        ? await getPlayerRankMonthly(hs, activeDiff)
+        : await getPlayerRankAllTime(hs, activeDiff);
       setPlayerRank(rank);
+    } else {
+      setPlayerRank(null);
     }
     setLoading(false);
-  }, [highScore]);
+  }, []);
 
   const loadSeasons = useCallback(async () => {
     setLoading(true);
@@ -307,7 +309,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
                 <p className="font-arcade text-[8px] text-muted-foreground mb-1">{t('lb_your_rank')}</p>
                 <div className="flex items-center justify-between">
                   <span className="font-arcade text-xs neon-text-blue">#{playerRank}</span>
-                  <span className="font-arcade text-xs text-foreground">{highScore} pts</span>
+                  <span className="font-arcade text-xs text-foreground">{getHighScore(diff)} pts</span>
                 </div>
               </div>
             )}
