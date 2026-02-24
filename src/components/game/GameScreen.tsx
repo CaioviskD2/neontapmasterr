@@ -4,7 +4,8 @@ import { playGameMusic, stopMusic } from '@/lib/music';
 import { trackPlayStart, trackGameOver, trackEvent } from '@/lib/analytics';
 import { getDifficulty, getMaxTimeForScore, getCircleCountForScore, type Difficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
-import { getActiveSkin } from '@/lib/skins';
+import { getActiveSkin, getCircleBg, getCircleGlow, getCircleBorder } from '@/lib/skins';
+import TrailBurst from './TrailBurst';
 
 interface Circle {
   id: number;
@@ -112,6 +113,10 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
   });
   const [ripple, setRipple] = useState<{ x: number; y: number; green: boolean } | null>(null);
   const [invulnerable, setInvulnerable] = useState(!!invulnerableStart);
+  const [trailBursts, setTrailBursts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const trailCountRef = useRef(0);
+  const trailTrackedRef = useRef(false);
+  const MAX_BURSTS = 3;
 
   const [challengeTimeLeft, setChallengeTimeLeft] = useState(config?.totalTimeMs ?? 0);
   const challengeStartRef = useRef(Date.now());
@@ -277,6 +282,20 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
       startTimeRef.current = Date.now();
       setTimeLeft(1);
 
+      // Trail burst in insane mode
+      if (isInsane && skin.trailStyle !== 'none') {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const burstId = ++trailCountRef.current;
+        setTrailBursts(prev => {
+          const next = [...prev, { id: burstId, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }];
+          return next.slice(-MAX_BURSTS);
+        });
+        if (!trailTrackedRef.current) {
+          trackEvent('insane_trail_triggered');
+          trailTrackedRef.current = true;
+        }
+      }
+
       let nextSize = circleSizeRef.current;
       if (isInsane) {
         nextSize = pickNextSize(circleSizeRef.current);
@@ -342,21 +361,18 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
         style={{ touchAction: 'none', minHeight: 0 }}
       >
         {circles.map(circle => {
-          const hasSkin = skin.id !== 'default';
-          const bgColor = circle.isRed
-            ? (hasSkin && skin.redColor ? `hsl(${skin.redColor})` : undefined)
-            : (hasSkin && skin.greenColor ? `hsl(${skin.greenColor})` : undefined);
-          const glowHsl = circle.isRed ? skin.redColor : (skin.glowColor || skin.greenColor);
-          const glowStyle = hasSkin && glowHsl
-            ? { boxShadow: `0 0 10px hsl(${glowHsl} / 0.5), 0 0 30px hsl(${glowHsl} / 0.3)` }
-            : {};
+          const isDefault = skin.id === 'default';
+          const bg = getCircleBg(skin, circle.isRed);
+          const isGradient = bg.startsWith('linear-gradient') || bg.startsWith('radial-gradient');
+          const glow = getCircleGlow(skin, circle.isRed);
+          const border = getCircleBorder(skin, circle.isRed);
 
           return (
             <button
               key={circle.id}
               onPointerDown={(e) => handleTap(circle, e)}
               className={`absolute rounded-full transition-transform active:scale-90 animate-pulse-neon ${
-                !hasSkin ? (circle.isRed ? 'bg-neon-red neon-glow-red' : 'bg-neon-green neon-glow-green') : ''
+                isDefault ? (circle.isRed ? 'bg-neon-red neon-glow-red' : 'bg-neon-green neon-glow-green') : ''
               }`}
               style={{
                 width: circleSize,
@@ -365,8 +381,9 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
                 willChange: 'transform',
                 left: 0,
                 top: 0,
-                ...(bgColor ? { backgroundColor: bgColor } : {}),
-                ...glowStyle,
+                ...(!isDefault && bg ? (isGradient ? { background: bg } : { backgroundColor: bg }) : {}),
+                ...(!isDefault && glow ? { boxShadow: glow } : {}),
+                ...(!isDefault && border ? { border } : {}),
               }}
             />
           );
@@ -384,6 +401,16 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
             }}
           />
         )}
+
+        {trailBursts.map(burst => (
+          <TrailBurst
+            key={burst.id}
+            x={burst.x}
+            y={burst.y}
+            skin={skin}
+            onDone={() => setTrailBursts(prev => prev.filter(b => b.id !== burst.id))}
+          />
+        ))}
       </div>
     </div>
   );

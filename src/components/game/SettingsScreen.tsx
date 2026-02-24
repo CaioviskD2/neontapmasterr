@@ -197,6 +197,13 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
           <div className="space-y-2">
             {SKINS.map((skin) => {
               const unlocked = skin.isUnlocked();
+              const previewColor = skin.primaryColor;
+              const isGradient = skin.styleType === 'gradient' && skin.secondaryColor;
+              const previewBg = !previewColor ? undefined
+                : isGradient ? `linear-gradient(135deg, hsl(${skin.primaryColor}), hsl(${skin.secondaryColor}))` 
+                : `hsl(${previewColor})`;
+              const previewBorder = skin.styleType === 'elite' && previewColor
+                ? `2px solid hsl(${previewColor} / 0.8)` : undefined;
               return (
                 <button
                   key={skin.id}
@@ -215,10 +222,10 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
                         : 'border-border/20 opacity-40 cursor-not-allowed'
                   }`}
                 >
-                  {skin.greenColor ? (
+                  {previewBg ? (
                     <span
                       className="w-5 h-5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: `hsl(${skin.greenColor})` }}
+                      style={{ background: previewBg, border: previewBorder }}
                     />
                   ) : (
                     <span className="w-5 h-5 rounded-full bg-neon-green flex-shrink-0" />
