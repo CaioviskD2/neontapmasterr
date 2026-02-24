@@ -4,7 +4,7 @@ import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/l
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
 import { stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd, showRewardedAd } from '@/lib/ads';
-import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1 } from '@/lib/analytics';
+import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1, trackLeaderboardSubmit } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
 import { getDifficulty } from '@/lib/difficulty';
@@ -45,11 +45,12 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     stopMusic();
     incrementGamesPlayed();
     updateStreak();
-    const prev = getHighScore();
+    const diff = getDifficulty();
+    const prev = getHighScore(diff);
     setHigh(prev);
 
     if (score > prev) {
-      setHighScore(score);
+      setHighScore(score, diff);
       setHigh(score);
       setIsNewHighScore(true);
       playHighScoreSound();
@@ -75,6 +76,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     setSaving(false);
     if (success) {
       setSaved(true);
+      trackLeaderboardSubmit(diff, score);
       await checkRankAndCelebrate(score);
     }
   };
@@ -138,7 +140,8 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     setSaving(false);
     if (success) {
       setSaved(true);
-      trackRankSubmitted(trimmed, score);
+      trackRankSubmitted(trimmed, score, diff);
+      trackLeaderboardSubmit(diff, score);
       await checkRankAndCelebrate(score);
     }
   };

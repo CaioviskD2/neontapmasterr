@@ -5,6 +5,7 @@ import { lovable } from '@/integrations/lovable/index';
 import { supabase } from '@/integrations/supabase/client';
 import { linkGoogleAccount } from '@/lib/player';
 import { getHighScore } from '@/lib/storage';
+import { getDifficulty } from '@/lib/difficulty';
 import { ArrowLeft, Loader2, User } from 'lucide-react';
 import { t } from '@/i18n';
 import { getStreakData } from '@/lib/streaks';
@@ -21,7 +22,7 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
   const [linking, setLinking] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
   const [tab, setTab] = useState<'stats' | 'badges'>('stats');
-  const highScore = getHighScore();
+  const highScore = getHighScore(getDifficulty());
   const streak = getStreakData();
   const unlockedBadges = getUnlockedBadges();
 
