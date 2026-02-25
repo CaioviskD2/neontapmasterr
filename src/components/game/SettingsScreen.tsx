@@ -194,6 +194,32 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
         {/* Skins */}
         <div className="px-4 py-4 rounded-lg bg-secondary/50 border border-border/50">
           <p className="font-arcade text-[10px] text-foreground mb-4">{t('skins_title')}</p>
+
+          {/* Live preview */}
+          {(() => {
+            const skin = SKINS.find(s => s.id === activeSkin) || SKINS[0];
+            const pc = skin.primaryColor;
+            const isGrad = skin.styleType === 'gradient' && skin.secondaryColor;
+            const bg = !pc ? 'hsl(var(--neon-green))'
+              : isGrad ? `radial-gradient(circle at 35% 35%, hsl(${pc}), hsl(${skin.secondaryColor}))` 
+              : `hsl(${pc})`;
+            const glow = pc
+              ? `0 0 14px hsl(${pc} / 0.6), 0 0 36px hsl(${pc} / 0.3)`
+              : '0 0 14px hsl(var(--neon-green) / 0.6), 0 0 36px hsl(var(--neon-green) / 0.3)';
+            const eliteBorder = skin.styleType === 'elite' && pc ? `2px solid hsl(${pc} / 0.8)` : undefined;
+            return (
+              <div className="flex items-center justify-center mb-5">
+                <div
+                  className="w-14 h-14 rounded-full animate-pulse-neon relative"
+                  style={{ background: bg, boxShadow: glow, border: eliteBorder }}
+                >
+                  {skin.styleType === 'elite' && (
+                    <span className="absolute inset-0 flex items-center justify-center text-lg pointer-events-none select-none" style={{ textShadow: pc ? `0 0 6px hsl(${pc})` : undefined }}>👑</span>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
           <div className="space-y-2">
             {SKINS.map((skin) => {
               const unlocked = skin.isUnlocked();
