@@ -123,7 +123,7 @@ export const getCircleBg = (skin: SkinDefinition, isRed: boolean): string => {
   if (isRed) return `hsl(${skin.redColor})`;
   
   if (skin.styleType === 'gradient' && skin.secondaryColor) {
-    return `linear-gradient(135deg, hsl(${skin.primaryColor}), hsl(${skin.secondaryColor}))`;
+    return `radial-gradient(circle at 35% 35%, hsl(${skin.primaryColor}), hsl(${skin.secondaryColor}))`;
   }
   return `hsl(${skin.primaryColor})`;
 };
@@ -133,13 +133,13 @@ export const getCircleGlow = (skin: SkinDefinition, isRed: boolean): string => {
   if (skin.id === 'default') return '';
   const color = isRed ? skin.redColor : skin.primaryColor;
   const intensity = skin.glowIntensity;
-  const spread = intensity === 'high' ? 20 : intensity === 'medium' ? 12 : 6;
-  const outerSpread = intensity === 'high' ? 40 : intensity === 'medium' ? 25 : 15;
+  const spread = intensity === 'high' ? 22 : intensity === 'medium' ? 12 : 6;
+  const outerSpread = intensity === 'high' ? 45 : intensity === 'medium' ? 25 : 15;
   
-  let shadow = `0 0 ${spread}px hsl(${color} / 0.6), 0 0 ${outerSpread}px hsl(${color} / 0.3)`;
+  let shadow = `0 0 ${spread}px hsl(${color} / 0.7), 0 0 ${outerSpread}px hsl(${color} / 0.35)`;
   
   if (skin.styleType === 'elite' && !isRed) {
-    shadow += `, inset 0 0 8px hsl(${color} / 0.4)`;
+    shadow += `, inset 0 0 10px hsl(${color} / 0.5), 0 0 60px hsl(${color} / 0.2)`;
   }
   return shadow;
 };

@@ -367,6 +367,8 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
           const glow = getCircleGlow(skin, circle.isRed);
           const border = getCircleBorder(skin, circle.isRed);
 
+          const isElite = skin.styleType === 'elite' && !circle.isRed && !isDefault;
+
           return (
             <button
               key={circle.id}
@@ -385,7 +387,11 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
                 ...(!isDefault && glow ? { boxShadow: glow } : {}),
                 ...(!isDefault && border ? { border } : {}),
               }}
-            />
+            >
+              {isElite && (
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] pointer-events-none select-none" style={{ textShadow: `0 0 6px hsl(${skin.primaryColor})` }}>👑</span>
+              )}
+            </button>
           );
         })}
 

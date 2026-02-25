@@ -200,7 +200,7 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
               const previewColor = skin.primaryColor;
               const isGradient = skin.styleType === 'gradient' && skin.secondaryColor;
               const previewBg = !previewColor ? undefined
-                : isGradient ? `linear-gradient(135deg, hsl(${skin.primaryColor}), hsl(${skin.secondaryColor}))` 
+                : isGradient ? `radial-gradient(circle at 35% 35%, hsl(${skin.primaryColor}), hsl(${skin.secondaryColor}))` 
                 : `hsl(${previewColor})`;
               const previewBorder = skin.styleType === 'elite' && previewColor
                 ? `2px solid hsl(${previewColor} / 0.8)` : undefined;
