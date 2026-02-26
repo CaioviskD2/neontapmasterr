@@ -81,12 +81,20 @@ export const submitScore = async (nickname: string, score: number, difficulty?: 
   const trimmed = nickname.trim();
   const diff = difficulty ?? getDifficulty();
 
-  const { error: ltError } = await supabase
-    .from('leaderboard')
-    .insert({ nickname: trimmed, score, month: getCurrentMonth(), difficulty: diff });
+  const { data: ltResult, error: ltError } = await supabase
+    .rpc('submit_leaderboard_score', {
+      p_nickname: trimmed,
+      p_score: score,
+      p_difficulty: diff,
+    });
 
   if (ltError) {
     console.error('Error submitting to all-time:', ltError);
+    return false;
+  }
+
+  if (ltResult && !(ltResult as any).success) {
+    console.error('Leaderboard submission rejected:', (ltResult as any).reason);
     return false;
   }
 

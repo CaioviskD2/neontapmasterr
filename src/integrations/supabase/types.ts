@@ -220,6 +220,10 @@ export type Database = {
         Args: { p_device_id: string; p_nickname: string }
         Returns: Json
       }
+      submit_leaderboard_score: {
+        Args: { p_difficulty?: string; p_nickname: string; p_score: number }
+        Returns: Json
+      }
       upsert_season_score:
         | {
             Args: { p_nickname: string; p_score: number; p_season_id: string }
