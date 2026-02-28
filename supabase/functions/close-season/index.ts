@@ -63,108 +63,105 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get top 100 for this season
-    const { data: top100, error: fetchError } = await supabase
-      .from("season_scores")
-      .select("nickname, best_score, updated_at")
-      .eq("season_id", seasonId)
-      .order("best_score", { ascending: false })
-      .order("updated_at", { ascending: true })
-      .limit(100);
+    // Process each difficulty level separately
+    const difficulties = ['easy', 'normal', 'hard', 'insane'];
+    let totalPlayersUpdated = 0;
+    const champions: Record<string, string> = {};
 
-    if (fetchError) throw fetchError;
+    for (const difficulty of difficulties) {
+      // Get top 100 for this season + difficulty
+      const { data: top100, error: fetchError } = await supabase
+        .from("season_scores")
+        .select("nickname, best_score, updated_at")
+        .eq("season_id", seasonId)
+        .eq("difficulty", difficulty)
+        .order("best_score", { ascending: false })
+        .order("updated_at", { ascending: true })
+        .limit(100);
 
-    if (!top100 || top100.length === 0) {
-      // Close empty season
-      await supabase
-        .from("seasons")
-        .update({ status: "closed", closed_at: new Date().toISOString() })
-        .eq("id", seasonId);
+      if (fetchError) throw fetchError;
 
-      return new Response(
-        JSON.stringify({ message: `Season ${seasonId} closed (no scores)` }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Freeze snapshot in season_results
-    const results = top100.map((entry, i) => {
-      const rank = i + 1;
-      let medal: string | null = null;
-      if (rank <= 10) medal = "gold";
-      else if (rank <= 50) medal = "silver";
-      else medal = "bronze";
-
-      return {
-        season_id: seasonId,
-        rank,
-        nickname: entry.nickname,
-        score: entry.best_score,
-        medal,
-      };
-    });
-
-    const { error: insertError } = await supabase
-      .from("season_results")
-      .insert(results);
-    if (insertError) throw insertError;
-
-    // Distribute medals to players
-    for (const result of results) {
-      const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
-
-      if (result.medal === "gold") {
-        updates.gold_count = supabase.rpc ? undefined : undefined; // We'll use raw SQL increment
+      if (!top100 || top100.length === 0) {
+        continue; // No scores for this difficulty, skip
       }
 
-      // Use individual updates with increment logic
-      const { data: player } = await supabase
-        .from("players")
-        .select("*")
-        .eq("nickname", result.nickname)
-        .maybeSingle();
+      // Freeze snapshot in season_results
+      const results = top100.map((entry, i) => {
+        const rank = i + 1;
+        let medal: string | null = null;
+        if (rank <= 10) medal = "gold";
+        else if (rank <= 50) medal = "silver";
+        else medal = "bronze";
 
-      if (player) {
-        const updateData: Record<string, unknown> = {
-          updated_at: new Date().toISOString(),
+        return {
+          season_id: seasonId,
+          difficulty,
+          rank,
+          nickname: entry.nickname,
+          score: entry.best_score,
+          medal,
         };
+      });
 
-        if (result.medal === "gold") updateData.gold_count = player.gold_count + 1;
-        if (result.medal === "silver") updateData.silver_count = player.silver_count + 1;
-        if (result.medal === "bronze") updateData.bronze_count = player.bronze_count + 1;
+      const { error: insertError } = await supabase
+        .from("season_results")
+        .insert(results);
+      if (insertError) throw insertError;
 
-        if (result.rank === 1) {
-          updateData.monthly_champion_count = player.monthly_champion_count + 1;
-        }
-        if (result.rank <= 10) {
-          updateData.top10_entry_count = player.top10_entry_count + 1;
-        }
-
-        if (!player.best_monthly_rank || result.rank < player.best_monthly_rank) {
-          updateData.best_monthly_rank = result.rank;
-        }
-
-        await supabase
+      // Distribute medals to players
+      for (const result of results) {
+        const { data: player } = await supabase
           .from("players")
-          .update(updateData)
-          .eq("nickname", result.nickname);
-      } else {
-        // Create player with initial medals
-        const newPlayer: Record<string, unknown> = {
-          nickname: result.nickname,
-          gold_count: result.medal === "gold" ? 1 : 0,
-          silver_count: result.medal === "silver" ? 1 : 0,
-          bronze_count: result.medal === "bronze" ? 1 : 0,
-          monthly_champion_count: result.rank === 1 ? 1 : 0,
-          top10_entry_count: result.rank <= 10 ? 1 : 0,
-          best_monthly_rank: result.rank,
-        };
+          .select("*")
+          .eq("nickname", result.nickname)
+          .maybeSingle();
 
-        await supabase.from("players").insert(newPlayer);
+        if (player) {
+          const updateData: Record<string, unknown> = {
+            updated_at: new Date().toISOString(),
+          };
+
+          if (result.medal === "gold") updateData.gold_count = player.gold_count + 1;
+          if (result.medal === "silver") updateData.silver_count = player.silver_count + 1;
+          if (result.medal === "bronze") updateData.bronze_count = player.bronze_count + 1;
+
+          if (result.rank === 1) {
+            updateData.monthly_champion_count = player.monthly_champion_count + 1;
+          }
+          if (result.rank <= 10) {
+            updateData.top10_entry_count = player.top10_entry_count + 1;
+          }
+
+          if (!player.best_monthly_rank || result.rank < player.best_monthly_rank) {
+            updateData.best_monthly_rank = result.rank;
+          }
+
+          await supabase
+            .from("players")
+            .update(updateData)
+            .eq("nickname", result.nickname);
+        } else {
+          const newPlayer: Record<string, unknown> = {
+            nickname: result.nickname,
+            gold_count: result.medal === "gold" ? 1 : 0,
+            silver_count: result.medal === "silver" ? 1 : 0,
+            bronze_count: result.medal === "bronze" ? 1 : 0,
+            monthly_champion_count: result.rank === 1 ? 1 : 0,
+            top10_entry_count: result.rank <= 10 ? 1 : 0,
+            best_monthly_rank: result.rank,
+          };
+
+          await supabase.from("players").insert(newPlayer);
+        }
+      }
+
+      totalPlayersUpdated += results.length;
+      if (results[0]) {
+        champions[difficulty] = results[0].nickname;
       }
     }
 
-    // Close season
+    // Close season (even if no scores in any difficulty)
     await supabase
       .from("seasons")
       .update({ status: "closed", closed_at: new Date().toISOString() })
@@ -181,8 +178,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         message: `Season ${seasonId} closed successfully`,
-        players_updated: results.length,
-        champion: results[0]?.nickname,
+        players_updated: totalPlayersUpdated,
+        champions,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
