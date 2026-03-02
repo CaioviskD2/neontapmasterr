@@ -110,6 +110,24 @@ export type Database = {
         }
         Relationships: []
       }
+      score_submissions: {
+        Row: {
+          id: string
+          nickname: string
+          submitted_at: string
+        }
+        Insert: {
+          id?: string
+          nickname: string
+          submitted_at?: string
+        }
+        Update: {
+          id?: string
+          nickname?: string
+          submitted_at?: string
+        }
+        Relationships: []
+      }
       season_results: {
         Row: {
           difficulty: string
