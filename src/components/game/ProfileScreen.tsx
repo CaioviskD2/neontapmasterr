@@ -44,7 +44,7 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
       redirect_uri: window.location.origin,
     });
     if (error) {
-      console.error('Google sign-in error:', error);
+      if (import.meta.env.DEV) console.error('Google sign-in error:', error);
       setLinking(false);
       return;
     }

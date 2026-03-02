@@ -28,7 +28,7 @@ export const registerNickname = async (nickname: string): Promise<{ success: boo
   });
 
   if (error) {
-    console.error('Error registering nickname:', error);
+    if (import.meta.env.DEV) console.error('Error registering nickname:', error);
     return { success: false, reason: 'server_error' };
   }
 
@@ -48,7 +48,7 @@ export const fetchPlayerProfile = async (nickname: string) => {
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching player profile:', error);
+    if (import.meta.env.DEV) console.error('Error fetching player profile:', error);
     return null;
   }
   return data;
@@ -63,7 +63,7 @@ export const linkGoogleAccount = async (userId: string): Promise<boolean> => {
   });
 
   if (error) {
-    console.error('Error linking Google account:', error);
+    if (import.meta.env.DEV) console.error('Error linking Google account:', error);
     return false;
   }
   return (data as { success: boolean }).success;

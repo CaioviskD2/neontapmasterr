@@ -43,7 +43,7 @@ export const fetchMonthlyLeaderboard = async (difficulty?: Difficulty): Promise<
     .limit(100);
 
   if (error) {
-    console.error('Error fetching monthly leaderboard:', error);
+    if (import.meta.env.DEV) console.error('Error fetching monthly leaderboard:', error);
     return [];
   }
   return (data || []).map(d => ({
@@ -65,7 +65,7 @@ export const fetchAllTimeLeaderboard = async (difficulty?: Difficulty): Promise<
     .limit(100);
 
   if (error) {
-    console.error('Error fetching all-time leaderboard:', error);
+    if (import.meta.env.DEV) console.error('Error fetching all-time leaderboard:', error);
     return [];
   }
   return data || [];
@@ -89,12 +89,12 @@ export const submitScore = async (nickname: string, score: number, difficulty?: 
     });
 
   if (ltError) {
-    console.error('Error submitting to all-time:', ltError);
+    if (import.meta.env.DEV) console.error('Error submitting to all-time:', ltError);
     return false;
   }
 
   if (ltResult && !(ltResult as any).success) {
-    console.error('Leaderboard submission rejected:', (ltResult as any).reason);
+    if (import.meta.env.DEV) console.error('Leaderboard submission rejected:', (ltResult as any).reason);
     return false;
   }
 
@@ -107,7 +107,7 @@ export const submitScore = async (nickname: string, score: number, difficulty?: 
     });
 
   if (ssError) {
-    console.error('Error upserting season score:', ssError);
+    if (import.meta.env.DEV) console.error('Error upserting season score:', ssError);
   }
 
   return true;
@@ -123,7 +123,7 @@ export const getPlayerRankMonthly = async (score: number, difficulty?: Difficult
     .gt('best_score', score);
 
   if (error) {
-    console.error('Error getting monthly rank:', error);
+    if (import.meta.env.DEV) console.error('Error getting monthly rank:', error);
     return -1;
   }
   return (count || 0) + 1;
@@ -138,7 +138,7 @@ export const getPlayerRankAllTime = async (score: number, difficulty?: Difficult
     .gt('score', score);
 
   if (error) {
-    console.error('Error getting all-time rank:', error);
+    if (import.meta.env.DEV) console.error('Error getting all-time rank:', error);
     return -1;
   }
   return (count || 0) + 1;
@@ -154,7 +154,7 @@ export const fetchClosedSeasons = async (): Promise<Season[]> => {
     .order('id', { ascending: false });
 
   if (error) {
-    console.error('Error fetching seasons:', error);
+    if (import.meta.env.DEV) console.error('Error fetching seasons:', error);
     return [];
   }
   return (data || []) as Season[];
@@ -170,7 +170,7 @@ export const fetchSeasonResults = async (seasonId: string, difficulty?: Difficul
     .order('rank', { ascending: true });
 
   if (error) {
-    console.error('Error fetching season results:', error);
+    if (import.meta.env.DEV) console.error('Error fetching season results:', error);
     return [];
   }
   return (data || []) as SeasonResult[];
@@ -184,7 +184,7 @@ export const fetchPlayerMedals = async (nickname: string) => {
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching player medals:', error);
+    if (import.meta.env.DEV) console.error('Error fetching player medals:', error);
     return null;
   }
   return data;
