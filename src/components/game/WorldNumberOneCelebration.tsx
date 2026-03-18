@@ -62,9 +62,10 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
-      clearTimeout(t3);
+      clearTimeout(fallback);
       if (animRef.current) cancelAnimationFrame(animRef.current);
       if (audioRef.current) {
+        audioRef.current.onended = null;
         audioRef.current.pause();
         audioRef.current = null;
       }
