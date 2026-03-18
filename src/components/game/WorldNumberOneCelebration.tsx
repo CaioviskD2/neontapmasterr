@@ -220,16 +220,19 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
 
       {/* Text - appears in phase 3 */}
       {phase === 'text' && (
-        <div className="relative z-10 text-center" style={{ animation: 'top10-text-in 0.6s ease-out forwards' }}>
-          <p className="text-4xl sm:text-5xl mb-2" style={{ animation: 'world1-crown 0.5s ease-out forwards' }}>👑</p>
+        <div
+          className="relative z-10 text-center px-6 w-full max-w-[90vw] sm:max-w-md mx-auto"
+          style={{ animation: 'top10-text-in 0.6s ease-out forwards' }}
+        >
+          <p className="text-3xl sm:text-5xl mb-2" style={{ animation: 'world1-crown 0.5s ease-out forwards' }}>👑</p>
           <p
-            className="font-arcade text-sm sm:text-xl md:text-2xl neon-text-gold leading-relaxed"
+            className="font-arcade text-[10px] sm:text-lg md:text-2xl neon-text-gold leading-relaxed break-words"
             style={{ animation: 'top10-glitch 0.15s ease-in-out 5, top10-glow-pulse 1s ease-in-out infinite' }}
           >
             {t('cel_you_are')}
           </p>
           <p
-            className="font-arcade text-2xl sm:text-4xl md:text-5xl mt-2"
+            className="font-arcade text-lg sm:text-3xl md:text-5xl mt-2 break-words leading-tight"
             style={{
               color: 'hsl(var(--neon-gold))',
               textShadow: '0 0 20px hsl(var(--neon-gold) / 0.9), 0 0 60px hsl(var(--neon-gold) / 0.5), 0 0 100px hsl(var(--neon-gold) / 0.3)',
