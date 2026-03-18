@@ -255,6 +255,16 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
         <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">{t('gameover_saved')}</p>
       )}
 
+      {/* Completed milestone challenges */}
+      {completedChallengeNames.length > 0 && (
+        <div className="mb-6 animate-slide-down text-center">
+          <p className="font-arcade text-[8px] neon-text-gold mb-2">{t('ch_new_challenges')}</p>
+          {completedChallengeNames.map((name, i) => (
+            <p key={i} className="font-arcade text-[7px] text-foreground">{name}</p>
+          ))}
+        </div>
+      )}
+
       {onContinue && !continueUsed && (
         <button
           onClick={async () => {
