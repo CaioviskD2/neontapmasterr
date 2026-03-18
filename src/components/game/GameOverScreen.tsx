@@ -4,13 +4,14 @@ import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/l
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
 import { stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd, showRewardedAd } from '@/lib/ads';
-import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1, trackLeaderboardSubmit } from '@/lib/analytics';
+import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1, trackLeaderboardSubmit, trackEvent } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
 import { getDifficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
 import { updateStreak } from '@/lib/streaks';
 import { checkAndUnlockBadges } from '@/lib/badges';
+import { checkMilestoneChallenges, buildMilestoneContext, incrementInsanePerfectCount, type ChallengeDefinition, CHALLENGES } from '@/lib/challenges';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
 import BadgeUnlockedOverlay from './BadgeUnlockedOverlay';
