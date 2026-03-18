@@ -51,6 +51,11 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     const prev = getHighScore(diff);
     setHigh(prev);
 
+    // Track insane perfect games (score > 0 means no red taps)
+    if (diff === 'insane' && score > 0) {
+      incrementInsanePerfectCount();
+    }
+
     if (score > prev) {
       setHighScore(score, diff);
       setHigh(score);
@@ -66,6 +71,18 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       } else {
         setShowNickname(true);
       }
+    }
+
+    // Check milestone challenges (with rank 0 initially, will re-check after rank is known)
+    const ctx = buildMilestoneContext(score, 0);
+    const newChallenges = checkMilestoneChallenges(ctx);
+    if (newChallenges.length > 0) {
+      const names = newChallenges.map(id => {
+        const ch = CHALLENGES.find(c => c.id === id);
+        return ch?.icon ? `${ch.icon} ${t(ch.titleKey as any, ch.i18nParams)}` : id;
+      });
+      setCompletedChallengeNames(names);
+      trackEvent('milestone_challenges_completed', { ids: newChallenges.join(',') });
     }
 
     showInterstitialAd();
