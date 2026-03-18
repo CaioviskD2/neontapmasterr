@@ -82,7 +82,7 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] grid-bg animate-float-in">
+    <div className="flex flex-col h-[100dvh] grid-bg animate-float-in overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-border/30">
         <button
