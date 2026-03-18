@@ -40,6 +40,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   const [continueUsed, setContinueUsed] = useState(false);
   const [newBadges, setNewBadges] = useState<string[]>([]);
   const [showBadgeOverlay, setShowBadgeOverlay] = useState(false);
+  const [completedChallengeNames, setCompletedChallengeNames] = useState<string[]>([]);
   const existingNickname = getNickname();
 
   useEffect(() => {
