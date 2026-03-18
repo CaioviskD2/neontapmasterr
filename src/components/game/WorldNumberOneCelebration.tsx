@@ -160,8 +160,8 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
         spawnExplosion();
       }
 
-      // Continuous sparkle particles after explosion
-      if (elapsed > 800 && elapsed < 2800 && Math.random() > 0.6) {
+      // Continuous sparkle particles – keep going the entire celebration
+      if (elapsed > 800 && Math.random() > 0.6) {
         const angle = Math.random() * Math.PI * 2;
         const dist = 30 + Math.random() * 100;
         particles.push({
