@@ -111,6 +111,19 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       if (result.newMedal) setMedalResult(result);
     }
 
+    // Re-check milestone challenges with actual rank
+    if (monthlyRank > 0) {
+      const ctx = buildMilestoneContext(playerScore, monthlyRank);
+      const rankChallenges = checkMilestoneChallenges(ctx);
+      if (rankChallenges.length > 0) {
+        const names = rankChallenges.map(id => {
+          const ch = CHALLENGES.find(c => c.id === id);
+          return ch?.icon ? `${ch.icon} ${t(ch.titleKey as any, ch.i18nParams)}` : id;
+        });
+        setCompletedChallengeNames(prev => [...prev, ...names]);
+      }
+    }
+
     // Check badges
     const badges = checkAndUnlockBadges(playerScore, monthlyRank);
     if (badges.length > 0) {
@@ -126,7 +139,6 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       setShowTop10(true);
       trackEnteredTop10(monthlyRank, playerScore);
     } else if (badges.length > 0) {
-      // Show badge overlay only if no celebration is shown
       setShowBadgeOverlay(true);
     }
   };
