@@ -4,13 +4,14 @@ import { submitScore, getPlayerRankMonthly, getPlayerRankAllTime } from '@/lib/l
 import { playHighScoreSound, playTop10Sound, playWorldNumberOneSound } from '@/lib/sounds';
 import { stopMusic } from '@/lib/music';
 import { incrementGamesPlayed, showInterstitialAd, showRewardedAd } from '@/lib/ads';
-import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1, trackLeaderboardSubmit } from '@/lib/analytics';
+import { trackNewHighScore, trackRankSubmitted, trackEnteredTop10, trackBecameWorld1, trackLeaderboardSubmit, trackEvent } from '@/lib/analytics';
 import { updateMedals, getMedalEmoji, type MedalUpdateResult } from '@/lib/medals';
 import { getNickname, isValidNickname, registerNickname } from '@/lib/player';
 import { getDifficulty } from '@/lib/difficulty';
 import { t } from '@/i18n';
 import { updateStreak } from '@/lib/streaks';
 import { checkAndUnlockBadges } from '@/lib/badges';
+import { checkMilestoneChallenges, buildMilestoneContext, incrementInsanePerfectCount, type ChallengeDefinition, CHALLENGES } from '@/lib/challenges';
 import Top10Celebration from './Top10Celebration';
 import WorldNumberOneCelebration from './WorldNumberOneCelebration';
 import BadgeUnlockedOverlay from './BadgeUnlockedOverlay';
@@ -39,6 +40,7 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
   const [continueUsed, setContinueUsed] = useState(false);
   const [newBadges, setNewBadges] = useState<string[]>([]);
   const [showBadgeOverlay, setShowBadgeOverlay] = useState(false);
+  const [completedChallengeNames, setCompletedChallengeNames] = useState<string[]>([]);
   const existingNickname = getNickname();
 
   useEffect(() => {
@@ -48,6 +50,11 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
     const diff = getDifficulty();
     const prev = getHighScore(diff);
     setHigh(prev);
+
+    // Track insane perfect games (score > 0 means no red taps)
+    if (diff === 'insane' && score > 0) {
+      incrementInsanePerfectCount();
+    }
 
     if (score > prev) {
       setHighScore(score, diff);
@@ -64,6 +71,18 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       } else {
         setShowNickname(true);
       }
+    }
+
+    // Check milestone challenges (with rank 0 initially, will re-check after rank is known)
+    const ctx = buildMilestoneContext(score, 0);
+    const newChallenges = checkMilestoneChallenges(ctx);
+    if (newChallenges.length > 0) {
+      const names = newChallenges.map(id => {
+        const ch = CHALLENGES.find(c => c.id === id);
+        return ch?.icon ? `${ch.icon} ${t(ch.titleKey as any, ch.i18nParams)}` : id;
+      });
+      setCompletedChallengeNames(names);
+      trackEvent('milestone_challenges_completed', { ids: newChallenges.join(',') });
     }
 
     showInterstitialAd();
@@ -92,6 +111,19 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       if (result.newMedal) setMedalResult(result);
     }
 
+    // Re-check milestone challenges with actual rank
+    if (monthlyRank > 0) {
+      const ctx = buildMilestoneContext(playerScore, monthlyRank);
+      const rankChallenges = checkMilestoneChallenges(ctx);
+      if (rankChallenges.length > 0) {
+        const names = rankChallenges.map(id => {
+          const ch = CHALLENGES.find(c => c.id === id);
+          return ch?.icon ? `${ch.icon} ${t(ch.titleKey as any, ch.i18nParams)}` : id;
+        });
+        setCompletedChallengeNames(prev => [...prev, ...names]);
+      }
+    }
+
     // Check badges
     const badges = checkAndUnlockBadges(playerScore, monthlyRank);
     if (badges.length > 0) {
@@ -107,7 +139,6 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
       setShowTop10(true);
       trackEnteredTop10(monthlyRank, playerScore);
     } else if (badges.length > 0) {
-      // Show badge overlay only if no celebration is shown
       setShowBadgeOverlay(true);
     }
   };
@@ -222,6 +253,16 @@ const GameOverScreen: React.FC<Props> = ({ score, onPlayAgain, onHome, onLeaderb
 
       {saved && !medalResult?.newMedal && (
         <p className="font-arcade text-[8px] neon-text-green mb-6 animate-slide-down">{t('gameover_saved')}</p>
+      )}
+
+      {/* Completed milestone challenges */}
+      {completedChallengeNames.length > 0 && (
+        <div className="mb-6 animate-slide-down text-center">
+          <p className="font-arcade text-[8px] neon-text-gold mb-2">{t('ch_new_challenges')}</p>
+          {completedChallengeNames.map((name, i) => (
+            <p key={i} className="font-arcade text-[7px] text-foreground">{name}</p>
+          ))}
+        </div>
       )}
 
       {onContinue && !continueUsed && (

@@ -11,7 +11,7 @@ import { getSoundEnabled, setSoundEnabled } from '@/lib/sounds';
 import { setMusicEnabled, playHomeMusic } from '@/lib/music';
 import { t, getLanguage, setLanguage, type Language } from '@/i18n';
 import { getDifficulty, setDifficulty, ALL_DIFFICULTIES, type Difficulty } from '@/lib/difficulty';
-import { SKINS, getSelectedSkin, setSelectedSkin } from '@/lib/skins';
+import { getVisibleSkins, getSelectedSkin, setSelectedSkin } from '@/lib/skins';
 
 interface Props {
   onBack: () => void;
@@ -48,6 +48,8 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
   const [diff, setDiff] = useState<Difficulty>(getDifficulty);
   const [activeSkin, setActiveSkin] = useState(getSelectedSkin);
   const [, forceUpdate] = useState(0);
+
+  const visibleSkins = getVisibleSkins();
 
   const updateSetting = <K extends keyof typeof settings>(
     key: K,
@@ -191,45 +193,55 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
             ))}
           </div>
         </div>
+
         {/* Skins */}
         <div className="px-4 py-4 rounded-lg bg-secondary/50 border border-border/50">
           <p className="font-arcade text-[10px] text-foreground mb-4">{t('skins_title')}</p>
 
           {/* Live preview */}
           {(() => {
-            const skin = SKINS.find(s => s.id === activeSkin) || SKINS[0];
+            const skin = visibleSkins.find(s => s.id === activeSkin) || visibleSkins[0];
             const pc = skin.primaryColor;
-            const isGrad = skin.styleType === 'gradient' && skin.secondaryColor;
+            const isGrad = (skin.styleType === 'gradient' || skin.styleType === 'spectral') && skin.secondaryColor;
             const bg = !pc ? 'hsl(var(--neon-green))'
               : isGrad ? `radial-gradient(circle at 35% 35%, hsl(${pc}), hsl(${skin.secondaryColor}))` 
               : `hsl(${pc})`;
+            const opacity = skin.styleType === 'spectral' ? 0.6 : 1;
             const glow = pc
               ? `0 0 14px hsl(${pc} / 0.6), 0 0 36px hsl(${pc} / 0.3)`
               : '0 0 14px hsl(var(--neon-green) / 0.6), 0 0 36px hsl(var(--neon-green) / 0.3)';
             const eliteBorder = skin.styleType === 'elite' && pc ? `2px solid hsl(${pc} / 0.8)` : undefined;
+            const spectralBorder = skin.styleType === 'spectral' && pc ? `1px solid hsla(${pc} / 0.3)` : undefined;
             return (
               <div className="flex items-center justify-center mb-5">
                 <div
                   className="w-14 h-14 rounded-full animate-pulse-neon relative"
-                  style={{ background: bg, boxShadow: glow, border: eliteBorder }}
+                  style={{ background: bg, boxShadow: glow, border: eliteBorder || spectralBorder, opacity }}
                 >
                   {skin.styleType === 'elite' && (
                     <span className="absolute inset-0 flex items-center justify-center text-lg pointer-events-none select-none" style={{ textShadow: pc ? `0 0 6px hsl(${pc})` : undefined }}>👑</span>
+                  )}
+                  {skin.styleType === 'spectral' && (
+                    <span className="absolute inset-0 flex items-center justify-center text-lg pointer-events-none select-none" style={{ textShadow: pc ? `0 0 6px hsl(${pc})` : undefined }}>👻</span>
                   )}
                 </div>
               </div>
             );
           })()}
           <div className="space-y-2">
-            {SKINS.map((skin) => {
+            {visibleSkins.map((skin) => {
               const unlocked = skin.isUnlocked();
               const previewColor = skin.primaryColor;
-              const isGradient = skin.styleType === 'gradient' && skin.secondaryColor;
+              const isGradient = (skin.styleType === 'gradient' || skin.styleType === 'spectral') && skin.secondaryColor;
               const previewBg = !previewColor ? undefined
                 : isGradient ? `radial-gradient(circle at 35% 35%, hsl(${skin.primaryColor}), hsl(${skin.secondaryColor}))` 
                 : `hsl(${previewColor})`;
               const previewBorder = skin.styleType === 'elite' && previewColor
-                ? `2px solid hsl(${previewColor} / 0.8)` : undefined;
+                ? `2px solid hsl(${previewColor} / 0.8)` 
+                : skin.styleType === 'spectral' && previewColor
+                  ? `1px solid hsla(${previewColor} / 0.3)`
+                  : undefined;
+              const previewOpacity = skin.styleType === 'spectral' ? 0.6 : 1;
               return (
                 <button
                   key={skin.id}
@@ -251,7 +263,7 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
                   {previewBg ? (
                     <span
                       className="w-5 h-5 rounded-full flex-shrink-0"
-                      style={{ background: previewBg, border: previewBorder }}
+                      style={{ background: previewBg, border: previewBorder, opacity: previewOpacity }}
                     />
                   ) : (
                     <span className="w-5 h-5 rounded-full bg-neon-green flex-shrink-0" />
