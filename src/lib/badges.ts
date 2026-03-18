@@ -64,7 +64,7 @@ export const checkAndUnlockBadges = (score: number, monthlyRank: number): string
   const highScore = Math.max(getHighScore(), score);
   const streak = getStreakData();
   const completedChallenges = getCompletedChallenges();
-  const allChallengesDone = CHALLENGES.every(c => completedChallenges[c.id]);
+  const allChallengesDone = CHALLENGES.filter(c => !c.id.startsWith('secret_')).every(c => completedChallenges[c.id]);
 
   tryUnlock('score_50', highScore >= 50);
   tryUnlock('score_100', highScore >= 100);
