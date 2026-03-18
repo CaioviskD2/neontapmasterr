@@ -34,22 +34,30 @@ const WorldNumberOneCelebration: React.FC<Props> = ({ onComplete }) => {
     // Intense vibration
     if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
 
-    // Play epic sound
+    // Play epic sound – animation lives until the track ends
     const audio = new Audio('/audio/world-number-one.mp3');
     audio.volume = 0.6;
     audio.play().catch(() => {});
     audioRef.current = audio;
 
-    // Phase timeline
-    const t1 = setTimeout(() => setPhase('explode'), 800);
-    const t2 = setTimeout(() => setPhase('text'), 1200);
-    const t3 = setTimeout(() => {
+    // When music ends, finish celebration
+    audio.onended = () => {
+      audioRef.current = null;
+      onComplete();
+    };
+
+    // Fallback: if audio fails to play or is very long, cap at 30s
+    const fallback = setTimeout(() => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
       onComplete();
-    }, 9000);
+    }, 30000);
+
+    // Phase timeline
+    const t1 = setTimeout(() => setPhase('explode'), 800);
+    const t2 = setTimeout(() => setPhase('text'), 1200);
 
     return () => {
       clearTimeout(t1);
