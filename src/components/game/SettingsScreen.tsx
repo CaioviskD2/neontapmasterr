@@ -82,7 +82,7 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] grid-bg animate-float-in">
+    <div className="flex flex-col h-[100dvh] grid-bg animate-float-in overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-border/30">
         <button
@@ -95,7 +95,7 @@ const SettingsScreen: React.FC<Props> = ({ onBack }) => {
         <h1 className="font-arcade text-xs neon-text-blue">{t('settings_title')}</h1>
       </div>
 
-      <div className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+      <div className="flex-1 min-h-0 px-4 py-6 space-y-6 overflow-y-auto overscroll-contain">
         {/* Sound */}
         <div className="flex items-center justify-between px-4 py-4 rounded-lg bg-secondary/50 border border-border/50">
           <div>
