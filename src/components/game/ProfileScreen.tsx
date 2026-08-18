@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { fetchPlayerProfile } from '@/lib/player';
+import { fetchPlayerProfile, isDeviceLinked } from '@/lib/player';
 import { getNickname } from '@/lib/player';
 import { lovable } from '@/integrations/lovable/index';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,7 +31,7 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
       if (nickname) {
         const data = await fetchPlayerProfile(nickname);
         setProfile(data);
-        setIsLinked(!!data?.user_id);
+        setIsLinked(await isDeviceLinked());
       }
       setLoading(false);
     };

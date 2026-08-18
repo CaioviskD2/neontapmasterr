@@ -230,6 +230,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_device_linked: { Args: { p_device_id: string }; Returns: boolean }
       link_google_account: {
         Args: { p_device_id: string; p_user_id: string }
         Returns: Json
@@ -242,20 +243,15 @@ export type Database = {
         Args: { p_difficulty?: string; p_nickname: string; p_score: number }
         Returns: Json
       }
-      upsert_season_score:
-        | {
-            Args: { p_nickname: string; p_score: number; p_season_id: string }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_difficulty?: string
-              p_nickname: string
-              p_score: number
-              p_season_id: string
-            }
-            Returns: Json
-          }
+      upsert_season_score: {
+        Args: {
+          p_difficulty?: string
+          p_nickname: string
+          p_score: number
+          p_season_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

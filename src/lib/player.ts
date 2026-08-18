@@ -43,7 +43,7 @@ export const registerNickname = async (nickname: string): Promise<{ success: boo
 export const fetchPlayerProfile = async (nickname: string) => {
   const { data, error } = await supabase
     .from('players')
-    .select('*')
+    .select('nickname, gold_count, silver_count, bronze_count, monthly_champion_count, top10_entry_count, best_monthly_rank, best_alltime_rank, updated_at, settings')
     .eq('nickname', nickname)
     .maybeSingle();
 
@@ -52,6 +52,16 @@ export const fetchPlayerProfile = async (nickname: string) => {
     return null;
   }
   return data;
+};
+
+// Check whether this device is already linked to a Google account
+export const isDeviceLinked = async (): Promise<boolean> => {
+  const { data, error } = await supabase.rpc('is_device_linked', { p_device_id: getDeviceId() });
+  if (error) {
+    if (import.meta.env.DEV) console.error('Error checking device link:', error);
+    return false;
+  }
+  return !!data;
 };
 
 // Link Google account to current device player
