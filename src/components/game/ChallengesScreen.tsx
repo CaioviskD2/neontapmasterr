@@ -92,6 +92,7 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-border/30">
         <button
           onClick={onBack}
+          aria-label="Back"
           className="p-2 rounded-full border border-border hover:border-neon-blue transition-colors"
         >
           <ArrowLeft className="w-4 h-4 text-foreground" />
@@ -111,7 +112,7 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
               {/* Category header */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm">{catInfo.icon}</span>
-                <span className="font-arcade text-[9px] text-muted-foreground">{catLabel}</span>
+                <h2 className="font-arcade text-[9px] text-muted-foreground">{catLabel}</h2>
                 <div className="flex-1 h-px bg-border/30" />
               </div>
 

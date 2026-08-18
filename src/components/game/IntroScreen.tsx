@@ -51,25 +51,27 @@ const IntroScreen: React.FC<Props> = ({ onStart }) => {
         ))}
       </div>
 
-      <h1
-        className="font-arcade text-2xl sm:text-3xl md:text-4xl text-center leading-relaxed mb-1"
-        style={{
-          color: '#a855f7',
-          animation: 'neon-pulse 1.6s ease-in-out infinite alternate',
-          textShadow: '0 0 10px rgba(168,85,247,0.8), 0 0 30px rgba(168,85,247,0.4)',
-        }}
-      >
-        NEON TAP
-      </h1>
-      <h1
-        className="font-arcade text-3xl sm:text-4xl md:text-5xl text-center leading-relaxed mb-3"
-        style={{
-          color: '#22d3ee',
-          animation: 'neon-pulse 1.6s ease-in-out 0.3s infinite alternate',
-          textShadow: '0 0 10px rgba(34,211,238,0.8), 0 0 30px rgba(34,211,238,0.4)',
-        }}
-      >
-        MASTER
+      <h1 className="text-center">
+        <span
+          className="block font-arcade text-2xl sm:text-3xl md:text-4xl leading-relaxed mb-1"
+          style={{
+            color: '#a855f7',
+            animation: 'neon-pulse 1.6s ease-in-out infinite alternate',
+            textShadow: '0 0 10px rgba(168,85,247,0.8), 0 0 30px rgba(168,85,247,0.4)',
+          }}
+        >
+          NEON TAP
+        </span>
+        <span
+          className="block font-arcade text-3xl sm:text-4xl md:text-5xl leading-relaxed mb-3"
+          style={{
+            color: '#22d3ee',
+            animation: 'neon-pulse 1.6s ease-in-out 0.3s infinite alternate',
+            textShadow: '0 0 10px rgba(34,211,238,0.8), 0 0 30px rgba(34,211,238,0.4)',
+          }}
+        >
+          MASTER
+        </span>
       </h1>
 
       <p

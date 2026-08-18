@@ -127,6 +127,7 @@ const LeaderboardScreen: React.FC<Props> = ({ onBack, onPlay }) => {
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <button
           onClick={selectedSeason ? () => setSelectedSeason(null) : onBack}
+          aria-label="Back"
           className="p-2 rounded-full border border-border hover:border-neon-blue transition-colors"
         >
           <ArrowLeft className="w-4 h-4 text-foreground" />
