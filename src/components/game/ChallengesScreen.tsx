@@ -112,7 +112,7 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
               {/* Category header */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-sm">{catInfo.icon}</span>
-                <span className="font-arcade text-[9px] text-muted-foreground">{catLabel}</span>
+                <h2 className="font-arcade text-[9px] text-muted-foreground">{catLabel}</h2>
                 <div className="flex-1 h-px bg-border/30" />
               </div>
 

@@ -320,6 +320,7 @@ const GameScreen: React.FC<Props> = ({ onGameOver, initialScore, invulnerableSta
 
   return (
     <div className="flex flex-col h-[100dvh] w-full grid-bg">
+      <h1 className="sr-only">One Wrong Tap — game in progress</h1>
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-3 pb-2">
         <div className="flex items-center gap-3">
