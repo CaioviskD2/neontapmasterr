@@ -67,7 +67,7 @@ const ProfileScreen: React.FC<Props> = ({ onBack }) => {
   return (
     <div className="flex flex-col min-h-[100dvh] grid-bg animate-float-in">
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-        <button onClick={onBack} className="p-2 rounded-full border border-border hover:border-neon-blue transition-colors">
+        <button onClick={onBack} aria-label="Back" className="p-2 rounded-full border border-border hover:border-neon-blue transition-colors">
           <ArrowLeft className="w-4 h-4 text-foreground" />
         </button>
         <div className="flex items-center gap-2">

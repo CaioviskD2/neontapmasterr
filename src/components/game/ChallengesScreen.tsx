@@ -92,6 +92,7 @@ const ChallengesScreen: React.FC<Props> = ({ onBack }) => {
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-border/30">
         <button
           onClick={onBack}
+          aria-label="Back"
           className="p-2 rounded-full border border-border hover:border-neon-blue transition-colors"
         >
           <ArrowLeft className="w-4 h-4 text-foreground" />

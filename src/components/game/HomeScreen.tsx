@@ -50,11 +50,13 @@ const HomeScreen: React.FC<Props> = ({ onPlay, onLeaderboard, onProfile, onChall
         </button>
 
         {/* Title */}
-        <h1 className="font-arcade text-2xl sm:text-3xl md:text-4xl neon-text-green text-center leading-relaxed mb-2">
-          {t('home_title_1')}
-        </h1>
-        <h1 className="font-arcade text-3xl sm:text-4xl md:text-5xl neon-text-red text-center leading-relaxed mb-10">
-          {t('home_title_2')}
+        <h1 className="text-center">
+          <span className="block font-arcade text-2xl sm:text-3xl md:text-4xl neon-text-green leading-relaxed mb-2">
+            {t('home_title_1')}
+          </span>
+          <span className="block font-arcade text-3xl sm:text-4xl md:text-5xl neon-text-red leading-relaxed mb-10">
+            {t('home_title_2')}
+          </span>
         </h1>
 
         {/* High Score */}
