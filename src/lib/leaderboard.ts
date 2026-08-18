@@ -58,7 +58,7 @@ export const fetchAllTimeLeaderboard = async (difficulty?: Difficulty): Promise<
   const diff = difficulty ?? getDifficulty();
   const { data, error } = await supabase
     .from('leaderboard')
-    .select('*')
+    .select('id, nickname, score, country, created_at, month, difficulty')
     .eq('difficulty', diff)
     .order('score', { ascending: false })
     .order('created_at', { ascending: true })
@@ -179,7 +179,7 @@ export const fetchSeasonResults = async (seasonId: string, difficulty?: Difficul
 export const fetchPlayerMedals = async (nickname: string) => {
   const { data, error } = await supabase
     .from('players')
-    .select('*')
+    .select('nickname, gold_count, silver_count, bronze_count, monthly_champion_count, top10_entry_count, best_monthly_rank, best_alltime_rank, updated_at, settings')
     .eq('nickname', nickname)
     .maybeSingle();
 
